@@ -1,0 +1,24 @@
+# Secrets and state must never be baked into an image.
+# The container reads .env at runtime via docker-compose env_file.
+.env
+*.env
+!.env.example
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Build output
+static/downloads/*
+!static/downloads/.gitkeep
+dist/
+build/
+*.exe
+
+# Dev noise
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.git/
+.gitignore

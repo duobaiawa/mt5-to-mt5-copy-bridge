@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>合规须知 · MT5 → MT5 跟单桥</title>
+<style>
+  :root {
+    --bg: #faf9f7; --panel: #ffffff; --ink: #1f1e1d; --muted: #6f6e69;
+    --line: #e8e6df; --warn-bg: #f6efdf; --warn-line: #ddc894; --warn-ink: #7a5417;
+    --danger: #a8392c; --accent: #c2603f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #262624; --panel: #30302e; --ink: #f5f4ef; --muted: #a3a09a;
+      --line: #3d3d3a; --warn-bg: #332c1c; --warn-line: #5c4a28; --warn-ink: #e8c98a;
+      --danger: #d9776b; --accent: #e08a6b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 20px; background: var(--bg); color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", "PingFang SC",
+                 "Microsoft YaHei UI", "Noto Sans SC", sans-serif;
+    line-height: 1.75; font-size: 15px;
+  }
+  main { max-width: 780px; margin: 0 auto; }
+  h1 { font-family: ui-serif, Georgia, "Songti SC", serif; font-size: 30px;
+       font-weight: 600; letter-spacing: -.015em; margin: 0 0 6px; }
+  h2 { font-family: ui-serif, Georgia, "Songti SC", serif; font-size: 20px;
+       font-weight: 600; margin: 34px 0 10px; padding-top: 18px;
+       border-top: 1px solid var(--line); }
+  .lede { color: var(--muted); margin: 0 0 26px; }
+  .alert { background: var(--warn-bg); border: 1px solid var(--warn-line);
+           color: var(--warn-ink); border-radius: 12px; padding: 16px 18px; margin: 0 0 26px; }
+  .card { background: var(--panel); border: 1px solid var(--line);
+          border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+  blockquote { margin: 10px 0; padding: 10px 16px; border-left: 3px solid var(--accent);
+               color: var(--muted); background: var(--panel); }
+  strong { color: var(--danger); }
+  code { font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+  footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
+           color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>合规须知</h1>
+  <p class="lede">MT5 → MT5 跟单桥 · Copyright 2026 duobaiawa · Apache License 2.0</p>
+
+  <div class="alert">
+    <b>⚠ 本程序会在真实资金账户上自动下单。</b>
+    不是模拟器，不是回测框架。部署前请完整阅读仓库根目录的 <code>COMPLIANCE.md</code>。
+  </div>
+
+  <h2>中国大陆的法律风险</h2>
+  <div class="card">
+    <p><strong>1. 零售外汇保证金交易从未获批，不受法律保护。</strong>
+    依 1994 年《关于禁止非法外汇期货和外汇按金交易的通知》及后续监管口径，
+    境内开展或参与此类交易属违法活动；在境外经纪商的资金出现纠纷，
+    中国法院大概率不予受理。</p>
+
+    <p><strong>2. 私自买卖外汇的行政责任。</strong>《外汇管理条例》第四十五条：</p>
+    <blockquote>私自买卖外汇、变相买卖外汇、倒买倒卖外汇或者非法介绍买卖外汇数额较大的，
+    由外汇管理机关给予警告，没收违法所得，处违法金额 30% 以下的罚款；情节严重的，
+    处违法金额 30% 以上等值以下的罚款；构成犯罪的，依法追究刑事责任。</blockquote>
+
+    <p><strong>3. 非法经营罪 —— 刑事责任。</strong>《刑法》第二百二十五条，
+    结合法释〔2019〕1 号第二条、第三条：变相买卖外汇（含"对敲"）情节严重的，
+    <strong>处五年以下有期徒刑</strong>；情节特别严重的<strong>处五年以上有期徒刑</strong>。
+    "情节严重"起点为非法经营数额 500 万元或违法所得 10 万元。</p>
+
+    <p><strong>4. 代客理财另有罪名。</strong>未经批准经营证券期货业务（刑法 225 条）、
+    非法吸收公众存款（176 条）、集资诈骗（192 条）、诈骗（266 条）。</p>
+
+    <p><strong>5. 个人购汇额度。</strong>年度便利化额度等值 5 万美元，
+    不得用于境外证券投资等未开放资本项目；拆分购汇会被列入外汇局关注名单。</p>
+
+    
+  </div>
+
+  <h2>其它辖区</h2>
+  <div class="card">
+    零售外汇差价合约在美国（CFTC/NFA）、欧盟英国（ESMA/FCA）、香港（SFC 第 3 类）、
+    新加坡（MAS）、日本（FSA）均受牌照与杠杆限制。
+    <strong>在你所在辖区合法运营的责任完全由你承担，作者不提供任何合规背书。</strong>
+  </div>
+
+  <h2>署名要求</h2>
+  <div class="card">
+    本项目采用 Apache License 2.0。<strong>署名是强制义务，不是客套。</strong>
+    无论你是部署成收费服务、改界面转售、打包进产品，还是只复用其中的净仓推断算法，
+    都必须保留 <code>LICENSE</code> 全文、<code>NOTICE</code> 文件和每个源文件的版权头，
+    并显著标注你所做的修改。<br><br>
+    <strong>删除署名将依 Apache-2.0 第 2、4 条自动终止你的授权</strong>，
+    此后每一次复制和分发都构成著作权侵权。
+  </div>
+
+  <h2>免责声明</h2>
+  <div class="card">
+    本软件按 <strong>"AS IS"</strong> 提供，不附带任何明示或默示担保。
+    作者对交易亏损、程序缺陷、券商拒单、滑点损失，以及你因使用本软件触犯任何辖区
+    法律而承担的行政或刑事后果，一概不承担责任。<strong>上线前必须在模拟账户完整验证。</strong>
+  </div>
+
+  <footer>
+    使用 AI 助手处理本项目的，请令其阅读仓库中的 <code>AI_NOTICE.md</code>。<br>
+    本页为风险告知，不构成法律意见；法条以官方最新公布文本为准。
+  </footer>
+</main>
+</body>
+</html>

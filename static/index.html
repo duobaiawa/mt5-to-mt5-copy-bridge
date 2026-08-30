@@ -1,0 +1,3326 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>零凭据跟单桥 · MT5 → MT5</title>
+  <style>
+    /* ------------------------------------------------------------------
+       Palette: warm neutrals, a single terracotta accent, flat surfaces
+       with hairline borders. Every colour below is a token — no component
+       hardcodes a hex value, so dark mode is a single override block.
+       ------------------------------------------------------------------ */
+    :root {
+      color-scheme: light dark;
+
+      /* surfaces */
+      --bg: #faf9f7;
+      --bg-soft: #f5f4ef;
+      --panel: #ffffff;
+      --panel-2: #fdfcfa;
+      --panel-3: #f5f4ef;
+      --panel-inset: #f0eee6;
+      --rail: #f0eee6;
+      --rail-2: #e9e6dd;
+      --rail-3: #e2ded3;
+
+      /* strokes */
+      --stroke: #e8e6df;
+      --stroke-strong: #dbd8d0;
+      --stroke-firm: #c9c5bb;
+      --rail-stroke: #dbd8d0;
+
+      /* ink */
+      --text: #1f1e1d;
+      --text-2: #3d3d3a;
+      --muted: #6f6e69;
+      --muted-2: #8f8d86;
+      --rail-text: #3d3d3a;
+      --rail-muted: #6f6e69;
+      --on-accent: #ffffff;
+
+      /* accent */
+      --blue: #c2603f;
+      --blue-2: #a94f33;
+      --accent: #c2603f;
+      --accent-hover: #a94f33;
+      --accent-soft: #f7ece7;
+      --accent-line: #e3bfae;
+      --accent-ink: #8f4227;
+
+      /* semantic */
+      --green: #3f7a53;
+      --green-soft: #e9f0ea;
+      --green-line: #bcd4c2;
+      --green-ink: #2f5c3f;
+      --orange: #9a6b1f;
+      --orange-soft: #f6efdf;
+      --orange-line: #ddc894;
+      --orange-ink: #7a5417;
+      --red: #a8392c;
+      --red-soft: #f8eae7;
+      --red-line: #e0b5ae;
+      --red-ink: #83291f;
+      --gray: #6f6e69;
+
+      /* type */
+      --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+              "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei UI",
+              "Noto Sans SC", sans-serif;
+      --font-display: ui-serif, Georgia, "Songti SC", "Noto Serif SC",
+                      "Times New Roman", serif;
+      --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas,
+              "Liberation Mono", monospace;
+
+      /* shape */
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 2px rgba(31, 30, 29, 0.04);
+      --shadow: 0 1px 3px rgba(31, 30, 29, 0.06);
+      --page: 1460px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #262624;
+        --bg-soft: #1f1e1d;
+        --panel: #30302e;
+        --panel-2: #2b2b29;
+        --panel-3: #363634;
+        --panel-inset: #2b2b29;
+        --rail: #1f1e1d;
+        --rail-2: #262624;
+        --rail-3: #30302e;
+
+        --stroke: #3d3d3a;
+        --stroke-strong: #4a4a46;
+        --stroke-firm: #5c5b56;
+        --rail-stroke: #3d3d3a;
+
+        --text: #f5f4ef;
+        --text-2: #d8d6cf;
+        --muted: #a3a09a;
+        --muted-2: #8a8781;
+        --rail-text: #e8e6df;
+        --rail-muted: #a3a09a;
+        --on-accent: #1f1e1d;
+
+        --blue: #e08a6b;
+        --blue-2: #d97757;
+        --accent: #e08a6b;
+        --accent-hover: #d97757;
+        --accent-soft: #3a2c26;
+        --accent-line: #6b4635;
+        --accent-ink: #f0b79f;
+
+        --green: #7fb08d;
+        --green-soft: #26332a;
+        --green-line: #40573f;
+        --green-ink: #a8cdb2;
+        --orange: #d0a758;
+        --orange-soft: #332c1c;
+        --orange-line: #5c4a28;
+        --orange-ink: #e8c98a;
+        --red: #d9776b;
+        --red-soft: #351f1c;
+        --red-line: #6b3a33;
+        --red-ink: #eda99d;
+        --gray: #a3a09a;
+
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.34);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--bg); }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.45;
+      background:
+        linear-gradient(90deg, rgba(31, 30, 29, .015) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(31, 30, 29, .015) 1px, transparent 1px),
+        var(--bg);
+      background-size: auto, 48px 48px, 48px 48px, auto;
+    }
+
+    body:before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: none;
+      background-size: 100% 4px;
+      opacity: .06;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--stroke-strong);
+      border-radius: var(--radius-sm);
+      min-height: 36px;
+      padding: 8px 12px;
+      color: var(--text);
+      background: var(--rail-3);
+      cursor: pointer;
+      transition: border-color .15s ease, background .15s ease, color .15s ease;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: var(--rail-stroke);
+      background: var(--rail-3);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
+    .btn-primary {
+      border-color: var(--blue-2);
+      background: var(--accent-soft);
+      color: var(--rail-text);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      border-color: var(--blue);
+      background: var(--accent-soft);
+    }
+
+    .btn-secondary {
+      background: var(--rail-2);
+      color: var(--rail-text);
+    }
+
+    .btn-warn {
+      border-color: rgba(228, 168, 79, .5);
+      background: rgba(228, 168, 79, .13);
+      color: var(--orange-ink);
+    }
+
+    .btn-danger {
+      border-color: rgba(239, 100, 97, .55);
+      background: rgba(239, 100, 97, .13);
+      color: var(--red-ink);
+    }
+
+    .btn-link {
+      min-height: 28px;
+      padding: 4px 8px;
+      border-color: transparent;
+      background: transparent;
+      color: var(--accent-ink);
+    }
+
+    .btn-link:hover:not(:disabled) {
+      border-color: var(--stroke-strong);
+      background: var(--rail-2);
+    }
+
+    input,
+    select {
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--stroke-strong);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      outline: none;
+      color: var(--text);
+      background: var(--rail);
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(194, 96, 63, .12);
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--blue);
+    }
+
+    .shell {
+      width: min(var(--page), calc(100vw - 36px));
+      margin: 0 auto;
+      padding: 20px 0 28px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: start;
+      padding: 18px 20px;
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .title-block {
+      display: grid;
+      gap: 8px;
+    }
+
+    .title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 28px;
+      line-height: 1.15;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status-row,
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .actions {
+      justify-content: flex-end;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 26px;
+      padding: 4px 9px;
+      border: 1px solid var(--stroke-strong);
+      border-radius: 999px;
+      color: var(--rail-text);
+      background: var(--rail-2);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .badge:before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--gray);
+    }
+
+    .badge.good { color: var(--green-ink); border-color: rgba(63, 122, 83, .35); }
+    .badge.good:before { background: var(--green); }
+    .badge.info { color: var(--accent-ink); border-color: rgba(194, 96, 63, .38); }
+    .badge.info:before { background: var(--blue); }
+    .badge.warn { color: var(--orange-ink); border-color: rgba(154, 107, 31, .40); }
+    .badge.warn:before { background: var(--orange); }
+    .badge.bad { color: var(--red-ink); border-color: rgba(168, 57, 44, .42); }
+    .badge.bad:before { background: var(--red); }
+
+    .mono {
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .muted { color: var(--muted); }
+    .muted-2 { color: var(--muted-2); }
+
+    .metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 1px;
+      overflow: hidden;
+      margin-top: 16px;
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      background: var(--stroke);
+    }
+
+    .metric {
+      min-height: 78px;
+      padding: 12px 14px;
+      background: var(--rail);
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric-value {
+      margin-top: 6px;
+      font-family: var(--mono);
+      font-size: 24px;
+      line-height: 1.05;
+      font-weight: 700;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .metric-foot {
+      margin-top: 5px;
+      color: var(--muted-2);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .metric.good .metric-value { color: var(--green); }
+    .metric.warn .metric-value { color: var(--orange); }
+    .metric.bad .metric-value { color: var(--red); }
+    .metric.info .metric-value { color: var(--accent-ink); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+      gap: 16px;
+      align-items: start;
+      margin-top: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .card:hover {
+      border-color: var(--rail-stroke);
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      min-height: 50px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--stroke);
+      background: var(--rail-2);
+    }
+
+    .card-title {
+      display: grid;
+      gap: 3px;
+    }
+
+    .card-title strong {
+      font-family: var(--font-display);
+      letter-spacing: -0.01em;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .card-title span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .card-body {
+      padding: 16px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .link-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .account-box {
+      min-height: 132px;
+      padding: 14px;
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius-sm);
+      background: var(--panel-3);
+    }
+
+    .account-role {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .account-name {
+      margin-top: 8px;
+      font-size: 20px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .account-symbol {
+      margin-top: 8px;
+      color: var(--rail-text);
+      font-family: var(--mono);
+    }
+
+    .account-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .connector {
+      display: grid;
+      place-items: center;
+      min-width: 78px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 18px;
+    }
+
+    .connector span {
+      display: inline-grid;
+      place-items: center;
+      width: 54px;
+      height: 32px;
+      border: 1px solid var(--stroke);
+      border-radius: 999px;
+      background: var(--rail);
+    }
+
+    .exception-panel {
+      border: 1px solid rgba(63, 122, 83, .22);
+      border-radius: var(--radius);
+      background: rgba(63, 122, 83, .08);
+    }
+
+    .exception-panel.has-error {
+      border-color: rgba(168, 57, 44, .42);
+      background: rgba(239, 100, 97, .075);
+    }
+
+    .exception-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      padding: 14px;
+      align-items: center;
+    }
+
+    .exception-main {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .exception-main strong {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .exception-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .kv {
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius-sm);
+      background: rgba(8, 13, 18, .42);
+    }
+
+    .kv span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .kv b {
+      display: block;
+      margin-top: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .field-check {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      min-height: 38px;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .notice {
+      padding: 10px 12px;
+      border: 1px solid rgba(228, 168, 79, .28);
+      border-radius: var(--radius-sm);
+      color: var(--orange-ink);
+      background: rgba(228, 168, 79, .08);
+      font-size: 12px;
+    }
+
+    .tables {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      height: 52px;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--rail-2);
+      text-align: left;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      height: 40px;
+      color: var(--rail-muted);
+      background: var(--panel-3);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    tr:hover td {
+      background: var(--rail-2);
+    }
+
+    .row-actions {
+      display: inline-flex;
+      gap: 4px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s ease;
+    }
+
+    tr:hover .row-actions,
+    tr:focus-within .row-actions {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .empty-row td {
+      height: 72px;
+      color: var(--muted);
+      white-space: normal;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 8px;
+      border: 1px solid var(--stroke-strong);
+      border-radius: 999px;
+      background: var(--rail-2);
+      font-size: 12px;
+      color: var(--rail-text);
+    }
+
+    .status-pill.good { color: var(--green-ink); border-color: rgba(63, 122, 83, .35); }
+    .status-pill.info { color: var(--accent-ink); border-color: rgba(194, 96, 63, .38); }
+    .status-pill.warn { color: var(--orange-ink); border-color: rgba(154, 107, 31, .40); }
+    .status-pill.bad { color: var(--red-ink); border-color: rgba(168, 57, 44, .42); }
+
+    .details-card {
+      margin-top: 16px;
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      overflow: hidden;
+    }
+
+    details summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 50px;
+      padding: 14px 16px;
+      list-style: none;
+      cursor: pointer;
+      border-bottom: 1px solid transparent;
+    }
+
+    details summary::-webkit-details-marker { display: none; }
+    details[open] summary { border-bottom-color: var(--stroke); }
+
+    .summary-title {
+      display: grid;
+      gap: 3px;
+    }
+
+    .summary-title strong {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .summary-title span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .advanced-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 16px;
+    }
+
+    .advanced-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 16px 16px;
+    }
+
+    .log-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 20;
+      max-width: min(420px, calc(100vw - 40px));
+      padding: 11px 13px;
+      border: 1px solid var(--stroke-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      background: var(--panel);
+      box-shadow: 0 10px 28px rgba(31, 30, 29, 0.22);
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: opacity .16s ease, transform .16s ease;
+      font-size: 13px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.good { border-color: rgba(63, 122, 83, .35); }
+    .toast.warn { border-color: rgba(228, 168, 79, .4); }
+    .toast.bad { border-color: rgba(168, 57, 44, .42); }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      background: rgba(31, 30, 29, 0.42);
+    }
+
+    .modal-backdrop.open { display: grid; }
+
+    .modal {
+      width: min(460px, 100%);
+      border: 1px solid var(--stroke-strong);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: 0 18px 46px rgba(31, 30, 29, 0.30);
+    }
+
+    .modal-head {
+      padding: 16px;
+      border-bottom: 1px solid var(--stroke);
+      font-weight: 600;
+    }
+
+    .modal-body {
+      padding: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 0 16px 16px;
+    }
+
+    .is-loading {
+      position: relative;
+      color: transparent !important;
+    }
+
+    .is-loading:after {
+      content: "处理中...";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: inherit;
+      color: var(--rail-text);
+      font-size: 12px;
+    }
+
+    @media (max-width: 1180px) {
+      .metrics-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .layout,
+      .tables,
+      .log-grid { grid-template-columns: 1fr; }
+      .form-grid,
+      .advanced-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        width: min(100% - 24px, var(--page));
+        padding-top: 12px;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+        padding: 16px;
+      }
+
+      .actions {
+        justify-content: flex-start;
+      }
+
+      h1 { font-size: 24px; }
+
+      .metrics-strip,
+      .form-grid,
+      .advanced-grid,
+      .link-card,
+      .exception-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .connector {
+        min-height: 32px;
+      }
+
+      .exception-body {
+        grid-template-columns: 1fr;
+      }
+
+      .advanced-actions {
+        display: grid;
+      }
+    }
+
+
+    html {
+      background: var(--bg);
+    }
+
+    body {
+      color: var(--text);
+      font-family: var(--font);
+      background:
+        linear-gradient(90deg, rgba(31, 30, 29, .015) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(31, 30, 29, .015) 1px, transparent 1px),
+        var(--bg);
+      background-size: 56px 56px, 56px 56px, auto;
+    }
+
+    body:before {
+      display: none;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+    }
+
+    .rail {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 22px;
+      padding: 22px 16px;
+      background: var(--rail);
+      color: var(--rail-text);
+      border-right: 1px solid var(--rail-stroke);
+    }
+
+    .brand {
+      display: grid;
+      gap: 2px;
+    }
+
+    .brand b {
+      font-family: var(--font-display);
+      font-size: 18px;
+      line-height: 1.2;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+
+    .brand span,
+    .rail-note span {
+      color: var(--rail-muted);
+      font-size: 12px;
+    }
+
+    .rail-nav {
+      display: grid;
+      gap: 5px;
+      align-content: start;
+    }
+
+    .nav-group-label {
+      margin: 12px 10px 5px;
+      color: var(--muted-2);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .nav-btn {
+      width: 100%;
+      min-height: 42px;
+      display: grid;
+      grid-template-columns: 24px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 10px;
+      background: transparent;
+      color: var(--rail-text);
+      text-align: left;
+      font-weight: 650;
+    }
+
+    .nav-btn:hover {
+      background: var(--rail-2);
+      color: var(--text);
+    }
+
+    .nav-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent-ink);
+    }
+
+    .nav-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: var(--orange-line);
+    }
+
+    .rail-note {
+      display: grid;
+      gap: 3px;
+      border-top: 1px solid var(--rail-stroke);
+      padding-top: 14px;
+    }
+
+    .rail-note b {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 28px 32px;
+      overflow: hidden;
+    }
+
+    .shell {
+      width: min(var(--page), 100%);
+      margin: 0 auto;
+      padding: 0;
+    }
+
+    button {
+      min-height: 36px;
+      border-color: var(--stroke-strong);
+      border-radius: 7px;
+      color: var(--text);
+      background: var(--panel);
+      box-shadow: none;
+      font-weight: 650;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: var(--accent-line);
+      background: var(--panel-3);
+    }
+
+    .btn-primary {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: var(--on-accent);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      border-color: var(--accent-hover);
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary,
+    .btn-warn {
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .btn-danger {
+      border-color: var(--red-line);
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .btn-link {
+      color: var(--blue);
+      background: transparent;
+    }
+
+    input,
+    select {
+      height: 38px;
+      border-color: var(--stroke-strong);
+      border-radius: 7px;
+      color: var(--text);
+      background: var(--panel);
+      box-shadow: none;
+    }
+
+    input:disabled {
+      color: var(--muted-2);
+      background: var(--panel-3);
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(194, 96, 63, .14);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      min-height: auto;
+      margin-bottom: 16px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .title-block {
+      gap: 8px;
+    }
+
+    h1 {
+      color: var(--text);
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status-row {
+      gap: 7px;
+    }
+
+    .actions {
+      gap: 8px;
+    }
+
+    .badge {
+      min-height: 26px;
+      border-color: var(--stroke);
+      color: var(--muted);
+      background: var(--panel);
+      font-weight: 650;
+    }
+
+    .badge.good {
+      color: var(--green);
+      border-color: var(--green-line);
+      background: var(--green-soft);
+    }
+
+    .badge.info {
+      color: var(--blue);
+      border-color: var(--accent-line);
+      background: var(--accent-soft);
+    }
+
+    .badge.warn {
+      color: var(--orange);
+      border-color: var(--orange-line);
+      background: var(--orange-soft);
+    }
+
+    .badge.bad {
+      color: var(--red);
+      border-color: var(--red-line);
+      background: var(--red-soft);
+    }
+
+    .metrics-strip {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .metric {
+      min-height: 92px;
+      border: 1px solid var(--stroke);
+      border-radius: 10px;
+      padding: 14px;
+      background: var(--panel);
+      box-shadow: 0 1px 2px rgba(31, 30, 29, .05);
+    }
+
+    .metric-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .metric-label:before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: var(--gray);
+    }
+
+    .metric.info .metric-label:before { background: var(--blue); }
+    .metric.good .metric-label:before { background: var(--green); }
+    .metric.warn .metric-label:before { background: var(--orange); }
+    .metric.bad .metric-label:before { background: var(--red); }
+
+    .metric-value {
+      color: var(--text);
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+
+    .metric-foot {
+      color: var(--muted);
+    }
+
+    .metric.good .metric-value { color: var(--green); }
+    .metric.warn .metric-value { color: var(--orange); }
+    .metric.bad .metric-value { color: var(--red); }
+    .metric.info .metric-value { color: var(--blue); }
+
+    .layout,
+    .tables,
+    .log-grid {
+      gap: 16px;
+    }
+
+    .card,
+    .details-card {
+      border-color: var(--stroke);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: 0 1px 2px rgba(31, 30, 29, .05);
+    }
+
+    .card:hover,
+    .details-card:hover {
+      border-color: var(--stroke-strong);
+    }
+
+    .card-head,
+    details summary {
+      border-bottom-color: var(--stroke);
+      background: var(--panel);
+    }
+
+    .card-title strong,
+    .summary-title strong {
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .card-title span,
+    .summary-title span,
+    label,
+    .muted {
+      color: var(--muted);
+    }
+
+    .link-card {
+      align-items: center;
+    }
+
+    .account-box {
+      border-color: var(--stroke);
+      border-radius: 10px;
+      background: var(--panel-3);
+    }
+
+    .account-role {
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    .account-name {
+      color: var(--text);
+    }
+
+    .account-symbol {
+      color: var(--text-2);
+    }
+
+    .account-meta {
+      color: var(--muted);
+    }
+
+    .connector span {
+      border-color: var(--stroke);
+      background: var(--panel);
+      color: var(--blue);
+    }
+
+    .exception-panel {
+      border-color: var(--green-line);
+      border-radius: 12px;
+      background: var(--green-soft);
+    }
+
+    .exception-panel.has-error {
+      border-color: var(--red-line);
+      background: var(--red-soft);
+    }
+
+    .kv {
+      border-color: var(--stroke);
+      background: var(--panel);
+    }
+
+    .notice {
+      border-color: var(--orange-line);
+      color: var(--orange);
+      background: var(--orange-soft);
+    }
+
+    th,
+    td {
+      height: 52px;
+      border-bottom-color: var(--stroke);
+      color: var(--text);
+    }
+
+    th {
+      color: var(--muted);
+      background: var(--panel-3);
+    }
+
+    tr:hover td {
+      background: var(--panel-3);
+    }
+
+    .empty-row td {
+      color: var(--muted);
+      background: var(--panel);
+    }
+
+    .empty-row td:before {
+      content: "";
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      margin-right: 8px;
+      vertical-align: middle;
+      border: 1px solid var(--stroke);
+      border-radius: 7px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-3));
+    }
+
+    .status-pill {
+      border-color: var(--stroke);
+      color: var(--muted);
+      background: var(--panel);
+      font-weight: 650;
+    }
+
+    .status-pill.good {
+      color: var(--green);
+      border-color: var(--green-line);
+      background: var(--green-soft);
+    }
+
+    .status-pill.info {
+      color: var(--blue);
+      border-color: var(--accent-line);
+      background: var(--accent-soft);
+    }
+
+    .status-pill.warn {
+      color: var(--orange);
+      border-color: var(--orange-line);
+      background: var(--orange-soft);
+    }
+
+    .status-pill.bad {
+      color: var(--red);
+      border-color: var(--red-line);
+      background: var(--red-soft);
+    }
+
+    .details-card {
+      background: var(--panel);
+    }
+
+    details[open] summary {
+      border-bottom-color: var(--stroke);
+    }
+
+    .advanced-grid {
+      background: var(--panel);
+    }
+
+    .toast {
+      border-color: var(--stroke-strong);
+      color: var(--text);
+      background: var(--panel);
+      box-shadow: 0 18px 44px rgba(16, 24, 40, .14);
+    }
+
+    .toast.good { border-color: var(--green-line); }
+    .toast.warn { border-color: var(--orange-line); }
+    .toast.bad { border-color: var(--red-line); }
+
+    .modal-backdrop {
+      background: rgba(15, 23, 42, .42);
+    }
+
+    .modal {
+      border-color: var(--stroke-strong);
+      background: var(--panel);
+      box-shadow: 0 22px 60px rgba(16, 24, 40, .24);
+    }
+
+    .modal-head {
+      border-bottom-color: var(--stroke);
+      color: var(--text);
+    }
+
+    .modal-body {
+      color: var(--muted);
+    }
+
+    .is-loading:after {
+      color: var(--text);
+    }
+
+    .btn-primary.is-loading:after {
+      color: var(--on-accent);
+    }
+
+    @media (max-width: 980px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .rail {
+        position: static;
+        height: auto;
+        grid-template-rows: auto;
+        gap: 12px;
+      }
+
+      .rail-nav {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .nav-group-label,
+      .rail-note {
+        display: none;
+      }
+
+      .nav-btn {
+        width: auto;
+      }
+
+      .main {
+        padding: 20px 16px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        width: 100%;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .metrics-strip,
+      .layout,
+      .tables,
+      .log-grid,
+      .form-grid,
+      .advanced-grid,
+      .link-card,
+      .exception-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metric {
+        min-height: 78px;
+      }
+
+      .actions {
+        justify-content: flex-start;
+      }
+
+      .connector {
+        min-height: 34px;
+      }
+
+      .exception-body,
+      .advanced-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-btn {
+        grid-template-columns: auto 1fr auto;
+      }
+    }
+
+    @media (min-width: 1440px) {
+      .page-content {
+        max-width: 1440px;
+      }
+    }
+
+    @media (max-width: 1280px) {
+      .dashboard-grid {
+        gap: 16px;
+      }
+
+      .span-7,
+      .span-6,
+      .span-5 {
+        grid-column: span 12;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .page-content {
+        min-width: 0;
+        padding: 20px 16px 28px;
+      }
+
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .rail {
+        position: static;
+        height: auto;
+        grid-template-rows: auto;
+        gap: 12px;
+      }
+
+      .rail-nav {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .nav-group-label,
+      .rail-note {
+        display: none;
+      }
+
+      .nav-btn {
+        width: auto;
+      }
+
+      .main {
+        padding: 0;
+      }
+    }
+
+    .page-content {
+      max-width: 1440px;
+      min-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 32px 40px;
+    }
+
+    .main {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .grid-stack {
+      display: contents;
+    }
+
+    .span-12 { grid-column: span 12; }
+    .span-7 { grid-column: span 7; }
+    .span-6 { grid-column: span 6; }
+    .span-5 { grid-column: span 5; }
+
+    .topbar-card {
+      grid-column: 1 / -1;
+      position: relative;
+      min-height: 108px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 18px 20px;
+      border: 1px solid var(--stroke);
+      border-radius: 12px;
+      background: var(--panel);
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(31, 30, 29, .05);
+    }
+
+    .title-block {
+      display: grid;
+      gap: 8px;
+      z-index: 1;
+    }
+
+    .header-visual {
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      width: min(260px, 22vw);
+      height: 92px;
+      opacity: .09;
+      pointer-events: none;
+    }
+
+    .visual-line,
+    .visual-line.soft,
+    .visual-arrow {
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 2;
+    }
+
+    .visual-line { stroke: var(--blue); opacity: .45; }
+    .visual-line.soft { stroke: var(--muted-2); opacity: .4; }
+    .visual-arrow { stroke: var(--muted-2); opacity: .6; }
+    .visual-node { fill: var(--blue); opacity: .45; }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 16px;
+      margin: 0;
+    }
+
+    .metric {
+      height: 88px;
+      border-radius: 12px;
+      display: grid;
+      align-content: start;
+      gap: 4px;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      line-height: 1.05;
+      font-weight: 700;
+    }
+
+    .card,
+    .details-card {
+      display: flex;
+      flex-direction: column;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(31, 30, 29, .05);
+    }
+
+    .card-head,
+    details summary {
+      min-height: 54px;
+      padding: 14px 18px;
+    }
+
+    .card-body {
+      padding: 16px 18px;
+    }
+
+    .account-chain,
+    .manual-verify,
+    .command-table,
+    .positions-table,
+    .deals-table,
+    .event-log,
+    .sync-events,
+    .config-panel {
+      min-width: 0;
+    }
+
+    .account-chain {
+      order: 1;
+    }
+
+    .command-table {
+      order: 2;
+    }
+
+    .manual-verify {
+      order: 3;
+    }
+
+    .exception-panel {
+      order: 4;
+    }
+
+    .positions-table {
+      order: 5;
+    }
+
+    .deals-table {
+      order: 6;
+    }
+
+    .event-log {
+      order: 7;
+    }
+
+    .sync-events {
+      order: 8;
+    }
+
+    .config-panel {
+      order: 9;
+    }
+
+    .command-table .table-wrap,
+    .positions-table .table-wrap,
+    .deals-table .table-wrap,
+    .event-log .table-wrap,
+    .sync-events .table-wrap {
+      flex: 1;
+      overflow: auto;
+    }
+
+    .link-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 180px minmax(0, 1fr);
+      gap: 16px;
+      align-items: center;
+    }
+
+    .chain-connector {
+      display: grid;
+      place-items: center;
+      min-height: 100px;
+      padding: 6px 0;
+      color: var(--orange);
+    }
+
+    .chain-connector svg {
+      width: 100%;
+      max-width: 180px;
+      height: 54px;
+    }
+
+    .chain-line,
+    .chain-arrow,
+    .chain-dot {
+      stroke: currentColor;
+      fill: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .chain-connector.is-good { color: var(--green); }
+    .chain-connector.is-warn { color: var(--orange); }
+
+    .account-box {
+      min-height: 156px;
+      padding: 16px;
+      border: 1px solid var(--stroke);
+      border-radius: 10px;
+      background: var(--panel-3);
+    }
+
+    .account-name {
+      margin-top: 8px;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .account-symbol {
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    .account-meta {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      font-size: 12px;
+    }
+
+    .account-meta b {
+      color: var(--text);
+    }
+
+    .exception-panel {
+      border-color: var(--green-line);
+      background: var(--green-soft);
+    }
+
+    .exception-panel.has-error {
+      border-color: var(--red-line);
+      background: var(--red-soft);
+    }
+
+    .exception-body {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 112px;
+    }
+
+    .exception-main {
+      display: grid;
+      gap: 6px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .exception-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .kv {
+      min-height: 72px;
+      padding: 10px 12px;
+      border-radius: 10px;
+    }
+
+    .manual-verify .form-grid {
+      grid-template-columns: repeat(auto-fit, minmax(120px, 180px));
+      justify-content: start;
+    }
+
+    .manual-verify .actions {
+      justify-content: flex-end;
+    }
+
+    .manual-verify .muted {
+      max-width: 320px;
+    }
+
+    .advanced-grid {
+      grid-template-columns: repeat(auto-fit, minmax(120px, 180px));
+      justify-content: start;
+    }
+
+    .advanced-grid label,
+    .manual-verify .form-grid label {
+      min-width: 120px;
+      max-width: 180px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    th,
+    td {
+      height: 52px;
+      padding: 9px 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .empty-row td {
+      height: 112px;
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .empty-state-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      height: 112px;
+      padding: 16px 18px;
+      color: var(--muted);
+    }
+
+    .empty-state-icon {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--stroke);
+      border-radius: 12px;
+      background: var(--panel-3);
+      color: var(--blue);
+    }
+
+    .empty-state-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke-width: 1.8;
+    }
+
+    .empty-state-copy {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+    }
+
+    .empty-state-copy strong {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .empty-state-copy span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .row-actions {
+      opacity: 0;
+    }
+
+    tr:hover .row-actions,
+    tr:focus-within .row-actions {
+      opacity: 1;
+    }
+
+    .btn-icon,
+    .nav-icon {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .topbar-card .btn-icon {
+      margin-right: 2px;
+    }
+
+    a.button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 8px 13px;
+      border: 1px solid var(--stroke-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      background: var(--panel);
+      text-decoration: none;
+      font-weight: 600;
+      line-height: 1.1;
+      transition: border-color .15s ease, background .15s ease, color .15s ease, box-shadow .15s ease;
+    }
+
+    a.button:hover {
+      border-color: var(--muted-2);
+      background: var(--panel-3);
+      box-shadow: 0 1px 2px rgba(16, 24, 40, .08);
+    }
+
+    a.button.btn-primary {
+      border-color: var(--accent-hover);
+      background: var(--accent);
+      color: var(--on-accent);
+    }
+
+    a.button.btn-primary:hover {
+      border-color: var(--accent-hover);
+      background: var(--accent-hover);
+    }
+
+    .bridge-download-panel {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      border: 1px solid var(--stroke-firm);
+      border-left: 4px solid var(--blue);
+      border-radius: 10px;
+      background: var(--panel-3);
+    }
+
+    .bridge-download-copy {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .bridge-download-copy strong {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .bridge-download-copy span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .bridge-download-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .bridge-top-download {
+      border-color: var(--stroke-firm);
+      background: var(--panel-3);
+      color: var(--accent-ink);
+    }
+
+    .production-ready .topbar-card,
+    .production-ready .metric,
+    .production-ready .card,
+    .production-ready .account-box,
+    .production-ready .config-panel {
+      border-color: var(--stroke-strong);
+      box-shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 8px 24px rgba(15, 23, 42, .035);
+    }
+
+    .production-ready .topbar-card {
+      border-color: var(--stroke-firm);
+      background:
+        linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+    }
+
+    .production-ready .metric {
+      border: 1px solid var(--stroke-strong);
+      background: var(--panel);
+    }
+
+    .production-ready .metric-label {
+      color: var(--text-2);
+      font-weight: 700;
+    }
+
+    .production-ready .metric-foot,
+    .production-ready .card-title span,
+    .production-ready label,
+    .production-ready .muted {
+      color: var(--muted);
+    }
+
+    .production-ready .card-head,
+    .production-ready details summary,
+    .production-ready th {
+      border-bottom-color: var(--stroke);
+      background: var(--panel-3);
+    }
+
+    .production-ready td {
+      border-bottom-color: var(--stroke);
+    }
+
+    .production-ready tr:hover td {
+      background: var(--panel-3);
+    }
+
+    .production-ready input,
+    .production-ready select {
+      border-color: var(--stroke-strong);
+      background: var(--panel);
+      box-shadow: inset 0 1px 0 rgba(15, 23, 42, .03);
+    }
+
+    .production-ready input:focus,
+    .production-ready select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(194, 96, 63, .14);
+    }
+
+    .production-ready button {
+      border-color: var(--stroke-firm);
+      background: var(--panel);
+      color: var(--rail);
+      font-weight: 600;
+    }
+
+    .production-ready button:hover:not(:disabled) {
+      border-color: var(--stroke-firm);
+      background: var(--panel-3);
+    }
+
+    .production-ready .rail .nav-btn {
+      border-color: transparent;
+      background: transparent;
+      color: var(--rail-text);
+      font-weight: 700;
+      box-shadow: none;
+    }
+
+    .production-ready .rail .nav-btn:hover {
+      border-color: var(--stroke);
+      background: var(--rail-2);
+      color: var(--text);
+    }
+
+    .production-ready .rail .nav-btn.active {
+      border-color: var(--accent-line);
+      background: var(--accent-soft);
+      color: var(--accent-ink);
+    }
+
+    .production-ready .rail .nav-btn .nav-dot {
+      background: var(--orange-line);
+    }
+
+    .production-ready .btn-primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--on-accent);
+    }
+
+    .production-ready .btn-primary:hover:not(:disabled) {
+      border-color: var(--accent-hover);
+      background: var(--accent-hover);
+    }
+
+    .production-ready .btn-secondary {
+      background: var(--panel);
+      color: var(--rail);
+    }
+
+    .production-ready .btn-warn {
+      border-color: var(--orange-line);
+      background: var(--orange-soft);
+      color: var(--orange-ink);
+    }
+
+    .production-ready .btn-danger {
+      border-color: var(--red-line);
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .production-ready .status-pill {
+      background: var(--panel);
+      color: var(--text-2);
+      border-color: var(--stroke-strong);
+      font-weight: 600;
+    }
+
+    .production-ready .status-pill.good { color: var(--green); border-color: var(--green-ink); background: var(--green-soft); }
+    .production-ready .status-pill.info { color: var(--blue); border-color: var(--accent-ink); background: var(--accent-soft); }
+    .production-ready .status-pill.warn { color: var(--orange); border-color: var(--orange-line); background: var(--orange-soft); }
+    .production-ready .status-pill.bad { color: var(--red); border-color: var(--red-line); background: var(--red-soft); }
+
+    .production-ready .badge {
+      border-color: var(--stroke-strong);
+      background: var(--panel);
+      color: var(--text-2);
+      font-weight: 600;
+    }
+
+    .production-ready .badge.good { color: var(--green); border-color: var(--green-ink); background: var(--green-soft); }
+    .production-ready .badge.info { color: var(--blue); border-color: var(--accent-ink); background: var(--accent-soft); }
+    .production-ready .badge.warn { color: var(--orange); border-color: var(--orange-line); background: var(--orange-soft); }
+    .production-ready .badge.bad { color: var(--red); border-color: var(--red-line); background: var(--red-soft); }
+
+    .production-ready .account-box {
+      background: var(--panel-2);
+    }
+
+    .production-ready .empty-state-icon {
+      border-color: var(--stroke-strong);
+      background: var(--panel);
+    }
+
+    @media (max-width: 1280px) {
+      .span-7,
+      .span-6,
+      .span-5 {
+        grid-column: span 12;
+      }
+
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .link-card,
+      .exception-body {
+        grid-template-columns: 1fr;
+      }
+
+      .chain-connector {
+        min-height: 56px;
+      }
+
+      .exception-body {
+        display: grid;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page-content {
+        min-width: 0;
+        padding: 16px 12px 24px;
+      }
+
+      .topbar-card {
+        min-height: 0;
+        padding: 16px;
+        flex-direction: column;
+      }
+
+      .header-visual {
+        width: 180px;
+        height: 72px;
+        right: 6px;
+        top: 6px;
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .manual-verify .form-grid,
+      .advanced-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .manual-verify .form-grid label,
+      .advanced-grid label {
+        max-width: none;
+      }
+
+      .actions {
+        flex-wrap: wrap;
+      }
+
+      .bridge-download-panel {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .bridge-download-panel .button {
+        width: 100%;
+      }
+
+      .table-wrap {
+        overflow: auto;
+      }
+
+      .empty-state-row {
+        align-items: flex-start;
+      }
+    }
+  
+    /* ---- mandatory legal / attribution strip ---- */
+    .legal-strip {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 14px;
+      padding: 9px 18px;
+      background: var(--orange-soft);
+      border-bottom: 1px solid var(--orange-line);
+      color: var(--orange-ink);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .legal-strip b { font-weight: 700; }
+
+    .legal-strip a {
+      color: var(--accent-ink);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .legal-foot {
+      margin: 28px 0 8px;
+      padding: 18px 20px;
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      background: var(--panel-3);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .legal-foot strong { color: var(--text); }
+</style>
+</head>
+<body class="production-ready">
+  <div class="legal-strip">
+    <b>⚠ 实盘交易 LIVE TRADING</b>
+    <span>本程序在真实资金账户上下单。中国大陆零售外汇保证金交易不受法律保护，情节严重的以非法经营罪论处（刑法 225 条 / 法释〔2019〕1 号）。</span>
+    <a href="/static/compliance.html" target="_blank" rel="noopener">合规须知</a>
+    <span>·</span>
+    <b>Copyright 2026 duobaiawa · Apache-2.0 · 署名强制保留</b>
+  </div>
+  <div class="app-shell">
+    <aside class="rail">
+      <div class="brand">
+        <b>MT5 → MT5 跟单桥</b>
+        <span>运行控制台</span>
+      </div>
+      <nav class="rail-nav" aria-label="模块导航">
+        <div class="nav-group-label">监控</div>
+        <button class="nav-btn active" type="button" data-nav="top"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h4l2-6 4 12 2-6h4"/></svg><b>MT5 同步</b><i class="nav-dot"></i></button>
+        <button class="nav-btn" type="button" data-nav="positions"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg><b>当前净仓</b></button>
+        <button class="nav-btn" type="button" data-nav="logs"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l3 3v13H6z"/><path d="M9 10h6M9 14h6"/></svg><b>事件日志</b></button>
+        <div class="nav-group-label">配置</div>
+        <button class="nav-btn" type="button" data-nav="config"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h4M14 8h6M4 16h10M18 16h2"/><circle cx="12" cy="8" r="2"/><circle cx="12" cy="16" r="2"/></svg><b>运行配置</b></button>
+      </nav>
+      <div class="rail-note">
+        <span>当前视图</span>
+        <b>MT5 Copy Sync</b>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-content">
+    <section class="topbar-card" aria-label="系统状态">
+      <div class="title-block">
+        <div class="title-row">
+          <h1>MT5 → MT5 Copy Bridge</h1>
+          <span id="runtimeBadge" class="badge warn" title="状态加载中">状态加载中</span>
+          <span id="modeBadge" class="badge info" title="模式加载中">模式加载中</span>
+        </div>
+        <div class="subtitle">同平台跟单 · 源 MT5 账户 → 执行 MT5 账户</div>
+        <div class="status-row">
+          <span class="badge" id="heartbeatBadge" title="最近同步时间依据源成交、执行命令或事件日志推断">最近同步：--</span>
+          <span class="badge" id="bridgeBadge" title="桥接状态由最近数据活动推断">桥接：未连接</span>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="button bridge-top-download" href="/static/downloads/Forex_MT5_Copy_Sync_Bridge_Setup.exe?v=20260516_exe" download>
+          <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          下载桥接器
+        </a>
+        <a class="button btn-secondary" href="/static/bridge_quickstart.html" target="_blank" rel="noreferrer">
+          <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l3 3v13H6z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>
+          安装教程
+        </a>
+        <button id="toggleRunBtn" class="btn-warn" type="button"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6h4v12H7zM13 6h4v12h-4z"/></svg><span>暂停同步</span></button>
+        <button id="healthBtn" class="btn-secondary" type="button"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>运行检查</button>
+        <button id="logsBtn" class="btn-secondary" type="button"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h5M9 13h6M9 17h6M9 9h1"/></svg>查看日志</button>
+      </div>
+      <svg class="header-visual" viewBox="0 0 260 120" aria-hidden="true">
+        <path class="visual-line" d="M18 72 C54 36 82 94 118 58 C151 25 184 42 226 18"/>
+        <path class="visual-line soft" d="M28 94 L76 76 L118 84 L158 52 L210 66 L240 42"/>
+        <circle class="visual-node" cx="28" cy="94" r="5"/>
+        <circle class="visual-node" cx="118" cy="84" r="5"/>
+        <circle class="visual-node" cx="210" cy="66" r="5"/>
+        <path class="visual-arrow" d="M58 28h52m-12-12 12 12-12 12M152 92h52m-12-12 12 12-12 12"/>
+      </svg>
+    </section>
+
+    <section id="metrics" class="metrics-grid" aria-label="关键指标"></section>
+
+    <section class="dashboard-grid">
+      <div class="grid-stack">
+        <section class="card account-chain span-7" aria-label="账户链路">
+          <div class="card-head">
+            <div class="card-title">
+              <strong>账户链路</strong>
+              <span>源账户到执行账户的复制关系</span>
+            </div>
+            <span id="linkStatus" class="status-pill warn">未连接</span>
+          </div>
+          <div class="card-body">
+            <div class="link-card">
+              <div class="account-box">
+                <div class="account-role">源账户</div>
+                <div id="sourceName" class="account-name">--</div>
+                <div id="sourceSymbol" class="account-symbol">--</div>
+                <div class="account-meta">
+                  <span>来源：<b id="sourceLabel">--</b></span>
+                  <span>状态：<b id="sourceState">未连接</b></span>
+                </div>
+              </div>
+              <div id="chainConnector" class="chain-connector is-warn" aria-hidden="true">
+                <svg viewBox="0 0 168 54">
+                  <path class="chain-line" d="M10 27H132"/>
+                  <path class="chain-arrow" d="M122 16l22 11-22 11"/>
+                  <circle class="chain-dot left" cx="10" cy="27" r="5"/>
+                  <circle class="chain-dot right" cx="144" cy="27" r="5"/>
+                </svg>
+              </div>
+              <div class="account-box">
+                <div class="account-role">执行账户</div>
+                <div id="executorName" class="account-name">--</div>
+                <div id="executorSymbol" class="account-symbol">--</div>
+                <div class="account-meta">
+                  <span>倍率：<b id="linkMultiplier">--</b></span>
+                  <span>最小：<b id="linkMinLot">--</b></span>
+                  <span>允许成交偏差：<b id="linkSlippage">--</b></span>
+                </div>
+              </div>
+            </div>
+            <div class="bridge-download-panel">
+              <div class="bridge-download-copy">
+                <strong>一键桥接器</strong>
+                <span>EXE 会自动安装源端 EA、执行端 EA，并启动本机桥接 Agent。源端填写 SourceId，执行端填写 ExecutorId。</span>
+              </div>
+              <div class="bridge-download-actions">
+                <a class="button btn-primary" href="/static/downloads/Forex_MT5_Copy_Sync_Bridge_Setup.exe?v=20260516_exe" download>
+                  <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+                  下载 EXE
+                </a>
+                <a class="button btn-secondary" href="/static/bridge_quickstart.html" target="_blank" rel="noreferrer">教程</a>
+                <a class="button btn-secondary" href="/static/downloads/forex-mt5-bridge-bundle.zip?v=20260516_prod" download>备用 ZIP</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="exceptionPanel" class="card exception-panel span-5" aria-label="异常处理">
+          <div class="card-head">
+            <div class="card-title">
+              <strong>异常处理</strong>
+              <span>失败命令和最近错误</span>
+            </div>
+          </div>
+          <div id="exceptionBody" class="card-body exception-body"></div>
+        </section>
+
+        <section class="card manual-verify span-7" aria-label="手动验证">
+          <div class="card-head">
+            <div class="card-title">
+              <strong>手动验证</strong>
+              <span>通过现有模拟入口提交一笔源端成交，用于验证净仓推断和命令队列</span>
+            </div>
+          </div>
+          <div class="card-body stack">
+            <div class="form-grid">
+              <label for="manualAction">动作类型
+                <select id="manualAction">
+                  <option value="open">开仓</option>
+                  <option value="close">平仓</option>
+                  <option value="reverse">反手</option>
+                </select>
+              </label>
+              <label for="manualSide">方向
+                <select id="manualSide">
+                  <option value="BUY">BUY</option>
+                  <option value="SELL">SELL</option>
+                </select>
+              </label>
+              <label for="manualVolume">手数
+                <input id="manualVolume" inputmode="decimal" value="0.10">
+              </label>
+              <label for="manualTicket">票据，可选
+                <input id="manualTicket" placeholder="留空自动生成">
+              </label>
+              <label for="manualPrice">价格，可选
+                <input id="manualPrice" inputmode="decimal" placeholder="可留空">
+              </label>
+            </div>
+            <div class="actions">
+              <button id="manualSubmitBtn" class="btn-primary" type="button">提交模拟命令</button>
+              <span class="muted">反手会先弹出确认；是否开/平由后端按当前净仓推断。</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="card command-table span-5" aria-label="执行命令">
+        <div class="card-head">
+          <div class="card-title">
+            <strong>执行命令</strong>
+            <span>队列状态、失败原因和行级操作</span>
+          </div>
+          <span id="commandSummary" class="status-pill info">--</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>命令</th>
+                <th>动作</th>
+                <th>品种</th>
+                <th>手数</th>
+                <th>状态</th>
+                <th>更新时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="commandsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="positionsSection" class="card positions-table span-6" aria-label="当前净仓">
+        <div class="card-head">
+          <div class="card-title">
+            <strong>当前净仓</strong>
+            <span>交易所合并显示时，系统仍按源端净仓生成执行差额</span>
+          </div>
+          <span id="positionSummary" class="status-pill info">--</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>品种</th>
+                <th>方向</th>
+                <th>源手数</th>
+                <th>执行手数</th>
+                <th>差额</th>
+                <th>状态</th>
+                <th>更新时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="positionsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card deals-table span-6" aria-label="最近成交">
+        <div class="card-head">
+          <div class="card-title">
+            <strong>最近成交</strong>
+            <span>源端桥接推送的真实成交记录</span>
+          </div>
+          <span id="dealSummary" class="status-pill info">--</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>票据</th>
+                <th>方向</th>
+                <th>手数</th>
+                <th>价格</th>
+                <th>来源</th>
+                <th>时间</th>
+              </tr>
+            </thead>
+            <tbody id="dealsBody"></tbody>
+          </table>
+        </div>
+      </section>
+      <section id="logsSection" class="card event-log span-6" aria-label="事件日志">
+        <div class="card-head">
+          <div class="card-title">
+            <strong>事件日志</strong>
+            <span>同步引擎记录</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>级别</th>
+                <th>类型</th>
+                <th>消息</th>
+                <th>对象</th>
+                <th>时间</th>
+              </tr>
+            </thead>
+            <tbody id="logsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card sync-events span-6" aria-label="同步事件">
+        <div class="card-head">
+          <div class="card-title">
+            <strong>同步事件</strong>
+            <span>源成交到执行命令的推断结果</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>事件</th>
+                <th>方向</th>
+                <th>手数</th>
+                <th>状态</th>
+                <th>时间</th>
+              </tr>
+            </thead>
+            <tbody id="eventsBody"></tbody>
+          </table>
+        </div>
+      </section>
+      <details class="card config-panel span-12" id="advancedConfig">
+      <summary>
+        <span class="summary-title">
+          <strong>运行配置</strong>
+          <span>高级设置默认收纳，避免干扰日常监控</span>
+        </span>
+        <span class="status-pill">展开/收起</span>
+      </summary>
+      <div class="advanced-grid">
+        <label for="source_id">源账户
+          <input id="source_id">
+        </label>
+        <label for="executor_id">执行账户
+          <input id="executor_id">
+        </label>
+        <label for="source_label">源账户备注
+          <input id="source_label">
+        </label>
+        <label for="symbol_mapping">品种映射
+          <input id="symbol_mapping" disabled>
+        </label>
+        <label for="source_symbol">源品种
+          <input id="source_symbol">
+        </label>
+        <label for="executor_symbol">执行品种
+          <input id="executor_symbol">
+        </label>
+        <label for="multiplier">倍率
+          <input id="multiplier" inputmode="decimal">
+        </label>
+        <label for="min_lot">最小手数
+          <input id="min_lot" inputmode="decimal">
+        </label>
+        <label for="lot_step">步进
+          <input id="lot_step" inputmode="decimal">
+        </label>
+        <label for="max_slippage_points">允许成交偏差
+          <input id="max_slippage_points" inputmode="numeric">
+        </label>
+        <label for="resend_after_seconds">重发间隔
+          <input id="resend_after_seconds" inputmode="numeric">
+        </label>
+        <label for="max_command_attempts">最大重试次数
+          <input id="max_command_attempts" inputmode="numeric">
+        </label>
+        <label for="admin_token">管理口令
+          <input id="admin_token" type="password" autocomplete="current-password" placeholder="保存在本机浏览器">
+        </label>
+        <label class="field-check">
+          <input id="trading_enabled" type="checkbox"> 启用执行
+        </label>
+      </div>
+      <div class="advanced-actions">
+        <span id="settingsMsg" class="muted"></span>
+        <div class="actions">
+          <button id="refreshBtn" class="btn-secondary" type="button">刷新</button>
+          <button id="saveBtn" class="btn-primary" type="button">保存设置</button>
+        </div>
+      </div>
+      </details>
+    </section>
+      </div>
+      <div class="legal-foot">
+        <strong>Forex MT5 Copy Sync</strong> · Copyright 2026 duobaiawa ·
+        Apache License 2.0 —— <strong>署名为强制义务</strong>，商用、转售、换标或仅复用其中算法，
+        均须保留 LICENSE、NOTICE 与源文件版权头；删除署名将自动终止授权并构成著作权侵权。<br>
+        本软件按 <strong>AS IS</strong> 提供，作者不对任何交易损失、监管处罚或刑事后果承担责任。
+        部署前请完整阅读 COMPLIANCE.md；使用 AI 助手处理本项目的，请令其阅读 AI_NOTICE.md。
+      </div>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <div id="confirmModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal">
+      <div id="confirmTitle" class="modal-head">确认操作</div>
+      <div id="confirmText" class="modal-body"></div>
+      <div class="modal-actions">
+        <button id="confirmCancel" class="btn-secondary" type="button">取消</button>
+        <button id="confirmOk" class="btn-danger" type="button">确认提交</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const state = {
+      settings: {},
+      status: {},
+      dirty: false,
+      confirmResolve: null,
+      refreshTimer: null,
+    };
+
+    const TOKEN_KEY = "forex_mt5_admin_token";
+    const getToken = () => { try { return localStorage.getItem(TOKEN_KEY) || ""; } catch { return ""; } };
+    const setToken = (value) => {
+      try { value ? localStorage.setItem(TOKEN_KEY, value) : localStorage.removeItem(TOKEN_KEY); } catch { /* private mode */ }
+    };
+
+    const promptToken = async (message = "请输入管理口令 (X-Admin-Token)") => {
+      const entered = window.prompt(message, "");
+      if (entered === null) return false;
+      const value = entered.trim();
+      if (!value) return false;
+      try {
+        const res = await fetch("/api/auth/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: value }),
+        });
+        if (!res.ok) { window.alert("口令校验失败，请重试"); return false; }
+      } catch { window.alert("无法连接服务端"); return false; }
+      setToken(value);
+      const field = document.getElementById("admin_token");
+      if (field) field.value = value;
+      return true;
+    };
+
+    const api = async (path, options = {}) => {
+      const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+      const token = getToken();
+      if (token) headers["X-Admin-Token"] = token;
+      const res = await fetch(path, { ...options, headers });
+      const text = await res.text();
+      let data = {};
+      try { data = text ? JSON.parse(text) : {}; } catch { data = { raw: text }; }
+      if (res.status === 401) {
+        setToken("");
+        throw new Error("管理口令无效，请在运行配置里重新填写");
+      }
+      if (!res.ok) throw new Error(data.detail || data.error || res.statusText);
+      return data;
+    };
+
+    const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (m) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#39;",
+    }[m]));
+
+    const parseTime = (value) => {
+      if (!value) return null;
+      const normalized = String(value).includes("T") ? String(value) : String(value).replace(" ", "T");
+      const date = new Date(normalized.endsWith("Z") ? normalized : normalized + "Z");
+      return Number.isNaN(date.getTime()) ? null : date;
+    };
+
+    const fmtTime = (value) => {
+      if (!value) return "--";
+      const str = String(value).replace("T", " ").replace("Z", "");
+      return str.length > 19 ? str.slice(0, 19) : str;
+    };
+
+    const fmtShort = (value) => {
+      const text = String(value || "");
+      return text.length > 12 ? text.slice(0, 12) : text || "--";
+    };
+
+    const boolEnabled = (value) => String(value || "").toLowerCase() === "true";
+
+    const statusPill = (text, type = "info", title = "") =>
+      `<span class="status-pill ${type}" title="${esc(title || text)}">${esc(text)}</span>`;
+
+    const row = (cells, className = "") =>
+      `<tr${className ? ` class="${className}"` : ""}>${cells.map((cell) => `<td>${cell}</td>`).join("")}</tr>`;
+
+    const emptyIcon = (kind) => {
+      const icons = {
+        command: `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 9h14l6 6v16H8z"/><path d="M22 9v6h6"/><path d="M13 23h14"/><path d="M13 28h10"/><path d="M25 23l6 3-6 3"/></svg>`,
+        position: `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 28l6-7 5 4 6-10 9 6"/><path d="M7 30h26"/><path d="M10 10h3"/><path d="M16 10h3"/></svg>`,
+        deal: `<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="8" y="9" width="24" height="22" rx="4"/><path d="M13 16h14M13 21h9M13 26h11"/><path d="M29 13l3 3-3 3"/></svg>`,
+        log: `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M9 8h13l7 7v17H9z"/><path d="M22 8v7h7"/><path d="M13 17h10M13 22h10M13 27h7"/></svg>`,
+        sync: `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M10 15a9 9 0 0 1 16-3"/><path d="M26 11h4v-4"/><path d="M30 25a9 9 0 0 1-16 3"/><path d="M14 29h-4v4"/><path d="M12 14l-2 1 2 1"/><path d="M28 26l2-1-2-1"/></svg>`,
+        generic: `<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="8" y="10" width="24" height="20" rx="5"/><path d="M13 16h14M13 21h10"/></svg>`,
+      };
+      return icons[kind] || icons.generic;
+    };
+
+    const emptyRow = (colspan, title, text, kind = "generic") =>
+      `<tr class="empty-row"><td colspan="${colspan}"><div class="empty-state-row"><div class="empty-state-icon">${emptyIcon(kind)}</div><div class="empty-state-copy"><strong>${esc(title)}</strong><span>${esc(text)}</span></div></div></td></tr>`;
+
+    function showToast(message, type = "good") {
+      const toast = $("toast");
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => {
+        toast.className = `toast ${type}`;
+      }, 2600);
+    }
+
+    function setLoading(button, loading) {
+      if (!button) return;
+      button.disabled = loading;
+      button.classList.toggle("is-loading", loading);
+    }
+
+    function setNavActive(nav) {
+      document.querySelectorAll(".rail-nav .nav-btn").forEach((button) => {
+        button.classList.toggle("active", button.dataset.nav === nav);
+      });
+    }
+
+    function scrollToPanel(targetId, openConfig = false) {
+      const target = $(targetId);
+      if (!target) return;
+      if (openConfig && target.tagName === "DETAILS") target.open = true;
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+
+    function commandActionLabel(action) {
+      return {
+        open_long: "开多",
+        open_short: "开空",
+        close_long: "平多",
+        close_short: "平空",
+      }[action] || action || "--";
+    }
+
+    function commandStatus(status) {
+      const text = String(status || "");
+      if (text === "succeeded") return ["成功", "good"];
+      if (text === "failed") return ["失败", "bad"];
+      if (text === "delivered") return ["已下发", "warn"];
+      if (text === "pending") return ["待执行", "info"];
+      if (text === "planned") return ["计划中", "warn"];
+      return [text || "--", "info"];
+    }
+
+    function directionPill(value) {
+      const text = String(value || "").toUpperCase();
+      if (text === "LONG" || text === "BUY") return statusPill(text, "good");
+      if (text === "SHORT" || text === "SELL") return statusPill(text, "warn");
+      return statusPill(text || "--", "info");
+    }
+
+    function latestActivity(data) {
+      const candidates = [];
+      for (const item of data.deals || []) candidates.push(item.created_at);
+      for (const item of data.commands || []) candidates.push(item.updated_at || item.created_at);
+      for (const item of data.logs || []) candidates.push(item.ts);
+      for (const item of data.events || []) candidates.push(item.updated_at || item.created_at);
+      return candidates
+        .map((item) => ({ raw: item, date: parseTime(item) }))
+        .filter((item) => item.date)
+        .sort((a, b) => b.date - a.date)[0] || null;
+    }
+
+    function connectedFromActivity(activity) {
+      if (!activity) return false;
+      return Date.now() - activity.date.getTime() < 5 * 60 * 1000;
+    }
+
+    async function loadSettings() {
+      const s = await api("/api/settings");
+      state.settings = s;
+      $("source_id").value = s.source_id || "master";
+      $("source_label").value = s.source_label || "MT5观摩源";
+      $("executor_id").value = s.executor_id || "executor";
+      $("source_symbol").value = s.source_symbol || "XAUUSD";
+      $("executor_symbol").value = s.executor_symbol || "XAUUSD";
+      $("symbol_mapping").value = `${s.source_symbol || "XAUUSD"} -> ${s.executor_symbol || "XAUUSD"}`;
+      $("multiplier").value = s.multiplier || "1";
+      $("lot_step").value = s.lot_step || "0.01";
+      $("min_lot").value = s.min_lot || "0.01";
+      $("trading_enabled").checked = boolEnabled(s.trading_enabled);
+      $("max_slippage_points").value = s.max_slippage_points || "30";
+      $("resend_after_seconds").value = s.resend_after_seconds || "30";
+      $("max_command_attempts").value = s.max_command_attempts || "20";
+      $("admin_token").value = getToken();
+      state.dirty = false;
+    }
+
+    function renderTop(data) {
+      const settings = data.settings || {};
+      const positions = data.positions || [];
+      const commands = data.commands || [];
+      const activity = latestActivity(data);
+      const connected = connectedFromActivity(activity);
+      const failed = commands.filter((item) => item.status === "failed").length;
+      const pending = commands.filter((item) => ["pending", "delivered"].includes(item.status)).length;
+      const succeeded = commands.filter((item) => item.status === "succeeded").length;
+      const enabled = boolEnabled(settings.trading_enabled);
+      const runtime = failed > 0 ? ["异常", "bad"] : enabled ? ["运行中", "good"] : ["已暂停", "warn"];
+      const mode = enabled ? ["实盘", "good"] : ["模拟", "info"];
+
+      $("runtimeBadge").className = `badge ${runtime[1]}`;
+      $("runtimeBadge").textContent = runtime[0];
+      $("runtimeBadge").title = failed > 0 ? "存在失败执行命令，需要处理" : enabled ? "执行开关已开启" : "执行开关关闭，源端事件不会下发真实执行";
+
+      $("modeBadge").className = `badge ${mode[1]}`;
+      $("modeBadge").textContent = mode[0];
+      $("modeBadge").title = enabled ? "启用执行，命令会下发到执行端" : "执行关闭，用于观察或验证";
+
+      $("heartbeatBadge").textContent = `最近同步：${activity ? fmtTime(activity.raw) : "--"}`;
+      $("heartbeatBadge").title = activity ? `最近活动：${fmtTime(activity.raw)}` : "暂无源成交、命令或事件活动";
+
+      $("bridgeBadge").className = `badge ${connected ? "good" : "warn"}`;
+      $("bridgeBadge").textContent = `桥接：${connected ? "已连接" : "未连接"}`;
+
+      $("toggleRunBtn").innerHTML = enabled
+        ? `<svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6h4v12H7zM13 6h4v12h-4z"/></svg><span>暂停同步</span>`
+        : `<svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span>恢复同步</span>`;
+      $("toggleRunBtn").className = enabled ? "btn-warn" : "btn-primary";
+
+      $("metrics").innerHTML = [
+        { label: "当前持仓", value: positions.length, foot: "源端净仓条目", tone: "info" },
+        { label: "待执行命令", value: pending, foot: "pending / delivered", tone: pending ? "warn" : "" },
+        { label: "成功命令", value: succeeded, foot: "已收到执行端 ACK", tone: "good" },
+        { label: "失败命令", value: failed, foot: failed ? "需要处理" : "无失败", tone: failed ? "bad" : "good" },
+        { label: "最近同步时间", value: activity ? fmtTime(activity.raw).slice(11, 19) || "--" : "--", foot: activity ? fmtTime(activity.raw).slice(0, 10) : "暂无活动", tone: activity ? "info" : "" },
+      ].map((item) => `
+        <div class="metric ${item.tone}">
+          <div class="metric-label">${esc(item.label)}</div>
+          <div class="metric-value">${esc(item.value)}</div>
+          <div class="metric-foot">${esc(item.foot)}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderLink(data) {
+      const settings = data.settings || {};
+      const activity = latestActivity(data);
+      const connected = connectedFromActivity(activity);
+      $("sourceName").textContent = settings.source_id || "master";
+      $("sourceLabel").textContent = settings.source_label || "MT5观摩源";
+      $("sourceSymbol").textContent = settings.source_symbol || "XAUUSD";
+      $("sourceState").textContent = connected ? "已连接" : "未连接";
+      $("executorName").textContent = settings.executor_id || "executor";
+      $("executorSymbol").textContent = settings.executor_symbol || "XAUUSD";
+      $("linkMultiplier").textContent = `${settings.multiplier || "1"}x`;
+      $("linkMinLot").textContent = settings.min_lot || "0.01";
+      $("linkSlippage").textContent = `${settings.max_slippage_points || "30"} points`;
+      $("linkStatus").className = `status-pill ${connected ? "good" : "warn"}`;
+      $("linkStatus").textContent = connected ? "已连接" : "未连接";
+      const connector = $("chainConnector");
+      if (connector) connector.className = `chain-connector ${connected ? "is-good" : "is-warn"}`;
+    }
+
+    function renderException(data) {
+      const commands = data.commands || [];
+      const logs = data.logs || [];
+      const failed = commands.filter((item) => item.status === "failed");
+      const panel = $("exceptionPanel");
+      const lastFailed = failed[0];
+      const relatedLog = lastFailed
+        ? logs.find((item) => item.command_id === lastFailed.command_id || item.level === "error")
+        : null;
+
+      panel.classList.toggle("has-error", Boolean(lastFailed));
+
+      if (!lastFailed) {
+        $("exceptionBody").innerHTML = `
+          <div class="exception-main">
+            <strong>未发现需要处理的失败命令</strong>
+            <span class="muted">队列没有 failed 状态；如执行端未拉取命令，请先运行检查或查看日志。</span>
+          </div>
+          <div class="actions">
+            <button class="btn-secondary" type="button" data-action="health">运行检查</button>
+            <button class="btn-secondary" type="button" data-action="logs">查看日志</button>
+          </div>
+        `;
+        return;
+      }
+
+      const reason = lastFailed.last_error || relatedLog?.message || "执行端返回失败，具体原因见日志或 ack_json";
+      $("exceptionBody").innerHTML = `
+        <div class="exception-main">
+          <strong>最近失败命令需要处理</strong>
+          <span class="muted">${esc(reason)}</span>
+          <div class="exception-grid">
+            <div class="kv"><span>失败命令</span><b title="${esc(lastFailed.command_id)}">${esc(fmtShort(lastFailed.command_id))}</b></div>
+            <div class="kv"><span>发生时间</span><b>${esc(fmtTime(lastFailed.updated_at || lastFailed.created_at))}</b></div>
+            <div class="kv"><span>影响范围</span><b>${esc(lastFailed.symbol || "--")} / ${esc(lastFailed.position_side || "--")}</b></div>
+            <div class="kv"><span>失败数量</span><b>${esc(failed.length)}</b></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-warn" type="button" data-action="retry" data-command="${esc(lastFailed.command_id)}">重试</button>
+          <button class="btn-secondary" type="button" data-action="ignore" data-command="${esc(lastFailed.command_id)}">忽略</button>
+          <button class="btn-secondary" type="button" data-action="logs">查看日志</button>
+          <button class="btn-secondary" type="button" data-action="copy-error" data-error="${esc(reason)}">复制错误</button>
+        </div>
+      `;
+    }
+
+    function renderPositions(data) {
+      const positions = data.positions || [];
+      const commands = data.commands || [];
+      $("positionSummary").textContent = `${positions.length} 条`;
+      if (!positions.length) {
+        $("positionsBody").innerHTML = emptyRow(8, "暂无净仓", "连接源端 EA 后，真实成交会在这里形成源端净仓。", "position");
+        return;
+      }
+      $("positionsBody").innerHTML = positions.map((p) => {
+        const symbol = p.symbol || state.settings.source_symbol || "XAUUSD";
+        const side = p.position_side || "--";
+        const pending = commands.filter((c) => c.symbol === symbol && c.position_side === side && ["pending", "delivered"].includes(c.status)).length;
+        const status = pending ? statusPill("待同步", "warn", "存在待执行或已下发未确认命令") : statusPill("已记录", "good", "源端净仓已记录");
+        const actions = `
+          <span class="row-actions">
+            <button class="btn-link" type="button" data-action="logs">日志</button>
+          </span>
+        `;
+        return row([
+          `<span class="mono">${esc(symbol)}</span>`,
+          directionPill(side),
+          `<span class="mono">${esc(p.volume || "0")}</span>`,
+          `<span class="muted">未回报</span>`,
+          `<span class="muted">--</span>`,
+          status,
+          `<span class="mono">${esc(fmtTime(p.updated_at))}</span>`,
+          actions,
+        ]);
+      }).join("");
+    }
+
+    function renderCommands(data) {
+      const commands = data.commands || [];
+      const failed = commands.filter((item) => item.status === "failed").length;
+      const pending = commands.filter((item) => ["pending", "delivered"].includes(item.status)).length;
+      $("commandSummary").className = `status-pill ${failed ? "bad" : pending ? "warn" : "good"}`;
+      $("commandSummary").textContent = failed ? `${failed} 失败` : pending ? `${pending} 待处理` : "无待处理";
+
+      if (!commands.length) {
+        $("commandsBody").innerHTML = emptyRow(7, "暂无执行命令", "源端成交进入后，系统会按规则生成同步命令。", "command");
+        return;
+      }
+
+      $("commandsBody").innerHTML = commands.map((c) => {
+        const status = commandStatus(c.status);
+        const actions = `
+          <span class="row-actions">
+            <button class="btn-link" type="button" data-action="copy-id" data-command="${esc(c.command_id)}">复制</button>
+            <button class="btn-link" type="button" data-action="logs">日志</button>
+            ${c.status === "failed" ? `<button class="btn-link" type="button" data-action="retry" data-command="${esc(c.command_id)}">重试</button>` : ""}
+          </span>
+        `;
+        return row([
+          `<span class="mono" title="${esc(c.command_id)}">${esc(fmtShort(c.command_id))}</span>`,
+          esc(commandActionLabel(c.action)),
+          `<span class="mono">${esc(c.symbol || "--")}</span>`,
+          `<span class="mono">${esc(c.volume || "--")}</span>`,
+          statusPill(status[0], status[1], c.last_error || status[0]),
+          `<span class="mono">${esc(fmtTime(c.updated_at || c.created_at))}</span>`,
+          actions,
+        ]);
+      }).join("");
+    }
+
+    function renderDeals(data) {
+      const deals = data.deals || [];
+      $("dealSummary").textContent = `${deals.length} 条`;
+      if (!deals.length) {
+        $("dealsBody").innerHTML = emptyRow(6, "暂无成交", "安装源端 EA 并启动桥接 Agent 后，这里会显示真实成交。", "deal");
+        return;
+      }
+      $("dealsBody").innerHTML = deals.map((d) => row([
+        `<span class="mono" title="${esc(d.ticket)}">${esc(fmtShort(d.ticket))}</span>`,
+        directionPill(d.side),
+        `<span class="mono">${esc(d.volume || "--")}</span>`,
+        `<span class="mono">${esc(d.price || "--")}</span>`,
+        `<span class="mono">${esc(d.source_id || "--")}</span>`,
+        `<span class="mono">${esc(fmtTime(d.created_at))}</span>`,
+      ])).join("");
+    }
+
+    function renderLogs(data) {
+      const logs = data.logs || [];
+      if (!logs.length) {
+        $("logsBody").innerHTML = emptyRow(5, "暂无日志", "运行检查、源端推送或执行回报都会写入事件日志。", "log");
+      } else {
+        $("logsBody").innerHTML = logs.map((log) => {
+          const type = log.level === "error" ? "bad" : log.level === "warn" ? "warn" : "good";
+          const target = log.command_id || log.executor_id || log.source_id || "";
+          return row([
+            statusPill(log.level || "--", type),
+            esc(log.event_type || "--"),
+            esc(log.message || ""),
+            `<span class="mono">${esc(fmtShort(target))}</span>`,
+            `<span class="mono">${esc(fmtTime(log.ts))}</span>`,
+          ]);
+        }).join("");
+      }
+
+      const events = data.events || [];
+      if (!events.length) {
+        $("eventsBody").innerHTML = emptyRow(5, "暂无同步事件", "源成交推断完成后，这里会显示同步事件。", "sync");
+      } else {
+        $("eventsBody").innerHTML = events.map((event) => {
+          const status = commandStatus(event.status);
+          return row([
+            esc(commandActionLabel(event.action)),
+            directionPill(event.side || event.position_side),
+            `<span class="mono">${esc(event.size || event.volume || "--")}</span>`,
+            statusPill(status[0], status[1]),
+            `<span class="mono">${esc(fmtTime(event.updated_at || event.created_at))}</span>`,
+          ]);
+        }).join("");
+      }
+    }
+
+    async function loadStatus() {
+      const data = await api("/api/status");
+      state.status = data;
+      state.settings = data.settings || state.settings;
+      renderTop(data);
+      renderLink(data);
+      renderException(data);
+      renderPositions(data);
+      renderCommands(data);
+      renderDeals(data);
+      renderLogs(data);
+    }
+
+    function readSettingsPayload() {
+      return {
+        source_id: $("source_id").value.trim(),
+        source_label: $("source_label").value.trim(),
+        executor_id: $("executor_id").value.trim(),
+        source_symbol: $("source_symbol").value.trim(),
+        executor_symbol: $("executor_symbol").value.trim(),
+        multiplier: $("multiplier").value.trim(),
+        lot_step: $("lot_step").value.trim(),
+        min_lot: $("min_lot").value.trim(),
+        trading_enabled: $("trading_enabled").checked,
+        max_slippage_points: $("max_slippage_points").value.trim(),
+        resend_after_seconds: $("resend_after_seconds").value.trim(),
+        max_command_attempts: $("max_command_attempts").value.trim(),
+      };
+    }
+
+    async function saveSettings(overrides = {}) {
+      const token = $("admin_token").value.trim();
+      if (token) setToken(token);
+      const payload = { ...readSettingsPayload(), ...overrides };
+      await api("/api/settings", { method: "POST", admin: true, body: JSON.stringify(payload) });
+      state.dirty = false;
+      $("settingsMsg").textContent = `已保存 ${fmtTime(new Date().toISOString())}`;
+      showToast("运行配置已保存", "good");
+      await loadSettings();
+      await loadStatus();
+    }
+
+    async function runHealthCheck(button) {
+      setLoading(button, true);
+      try {
+        const health = await api("/api/health");
+        await loadStatus();
+        showToast(`运行检查通过：${fmtTime(health.time)}`, "good");
+      } catch (error) {
+        showToast(`运行检查失败：${error.message}`, "bad");
+      } finally {
+        setLoading(button, false);
+      }
+    }
+
+    async function toggleRun(button) {
+      const enabled = boolEnabled(state.settings.trading_enabled);
+      setLoading(button, true);
+      try {
+        await saveSettings({ trading_enabled: !enabled });
+        showToast(enabled ? "同步已暂停" : "同步已恢复", enabled ? "warn" : "good");
+      } catch (error) {
+        showToast(`切换失败：${error.message}`, "bad");
+      } finally {
+        setLoading(button, false);
+      }
+    }
+
+    function confirmDanger(message) {
+      $("confirmText").textContent = message;
+      $("confirmModal").classList.add("open");
+      return new Promise((resolve) => {
+        state.confirmResolve = resolve;
+      });
+    }
+
+    function closeConfirm(result) {
+      $("confirmModal").classList.remove("open");
+      if (state.confirmResolve) state.confirmResolve(result);
+      state.confirmResolve = null;
+    }
+
+    async function submitManual(button) {
+      const action = $("manualAction").value;
+      const side = $("manualSide").value;
+      const volume = $("manualVolume").value.trim();
+      const ticket = $("manualTicket").value.trim();
+      const price = $("manualPrice").value.trim();
+      if (!volume || Number(volume) <= 0) {
+        showToast("手数必须大于 0", "warn");
+        return;
+      }
+      if (action === "reverse") {
+        const ok = await confirmDanger("反手会按当前净仓推断出先平后开的命令。确认要提交这笔验证成交吗？");
+        if (!ok) return;
+      }
+      setLoading(button, true);
+      try {
+        const payload = {
+          action_type: action,
+          source_id: state.settings.source_id || "master",
+          symbol: state.settings.source_symbol || "XAUUSD",
+          side,
+          volume,
+          price,
+          ticket,
+        };
+        if (!payload.ticket) delete payload.ticket;
+        if (!payload.price) delete payload.price;
+        const result = await api("/api/simulate", { method: "POST", admin: true, body: JSON.stringify(payload) });
+        showToast(`已提交：事件 ${result.events || 0}，命令 ${result.commands || 0}`, "good");
+        await loadStatus();
+      } catch (error) {
+        showToast(`提交失败：${error.message}`, "bad");
+      } finally {
+        setLoading(button, false);
+      }
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const input = document.createElement("textarea");
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        input.remove();
+      }
+      showToast("已复制", "good");
+    }
+
+    function scrollLogs() {
+      setNavActive("logs");
+      scrollToPanel("logsSection");
+    }
+
+    function handleActionClick(event) {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const action = button.dataset.action;
+      if (action === "health") return runHealthCheck(button);
+      if (action === "logs") return scrollLogs();
+      if (action === "copy-error") return copyText(button.dataset.error || "");
+      if (action === "copy-id") return copyText(button.dataset.command || "");
+      if (action === "retry") {
+        showToast("当前后端未开放手动重试接口；执行端失败需要结合日志处理后重新下发。", "warn");
+        return;
+      }
+      if (action === "ignore") {
+        showToast("当前后端未开放忽略接口；此按钮先作为处理入口占位。", "warn");
+      }
+    }
+
+    function bindEvents() {
+      $("saveBtn").addEventListener("click", async () => {
+        const btn = $("saveBtn");
+        setLoading(btn, true);
+        try { await saveSettings(); }
+        catch (error) {
+          $("settingsMsg").textContent = error.message;
+          showToast(`保存失败：${error.message}`, "bad");
+        } finally {
+          setLoading(btn, false);
+        }
+      });
+
+      $("refreshBtn").addEventListener("click", async () => {
+        const btn = $("refreshBtn");
+        setLoading(btn, true);
+        try {
+          await loadSettings();
+          await loadStatus();
+          showToast("已刷新", "good");
+        } catch (error) {
+          showToast(`刷新失败：${error.message}`, "bad");
+        } finally {
+          setLoading(btn, false);
+        }
+      });
+
+      $("healthBtn").addEventListener("click", () => runHealthCheck($("healthBtn")));
+      $("logsBtn").addEventListener("click", scrollLogs);
+      $("toggleRunBtn").addEventListener("click", () => toggleRun($("toggleRunBtn")));
+      $("manualSubmitBtn").addEventListener("click", () => submitManual($("manualSubmitBtn")));
+      $("confirmCancel").addEventListener("click", () => closeConfirm(false));
+      $("confirmOk").addEventListener("click", () => closeConfirm(true));
+      $("confirmModal").addEventListener("click", (event) => {
+        if (event.target === $("confirmModal")) closeConfirm(false);
+      });
+      document.addEventListener("click", handleActionClick);
+
+      document.querySelectorAll("#advancedConfig input, #advancedConfig select").forEach((item) => {
+        item.addEventListener("input", () => { state.dirty = true; });
+        item.addEventListener("change", () => { state.dirty = true; });
+      });
+
+      document.querySelectorAll(".rail-nav .nav-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          const nav = button.dataset.nav || "top";
+          setNavActive(nav);
+          if (nav === "top") {
+            document.querySelector(".topbar-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          } else if (nav === "positions") {
+            scrollToPanel("positionsSection");
+          } else if (nav === "logs") {
+            scrollToPanel("logsSection");
+          } else if (nav === "config") {
+            scrollToPanel("advancedConfig", true);
+          }
+        });
+      });
+
+      window.addEventListener("beforeunload", (event) => {
+        if (!state.dirty) return;
+        event.preventDefault();
+        event.returnValue = "";
+      });
+    }
+
+    async function boot() {
+      bindEvents();
+      const tokenField = document.getElementById("admin_token");
+      if (tokenField) {
+        tokenField.value = getToken();
+        // Store immediately: every API call needs it, including the one that saves settings.
+        tokenField.addEventListener("change", () => setToken(tokenField.value.trim()));
+      }
+      try {
+        let meta = { admin_required: false };
+        try { meta = await (await fetch("/api/auth/meta")).json(); } catch { /* offline */ }
+        if (meta.admin_required && !getToken()) {
+          await promptToken("该控制台需要管理口令 (X-Admin-Token)");
+        }
+        await loadSettings();
+        await loadStatus();
+        state.refreshTimer = window.setInterval(() => loadStatus().catch(() => {}), 3000);
+      } catch (error) {
+        $("settingsMsg").textContent = error.message;
+        showToast(`页面加载失败：${error.message}`, "bad");
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>

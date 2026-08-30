@@ -1,0 +1,14 @@
+services:
+  mt5-to-mt5-copy-bridge:
+    build: .
+    container_name: mt5-to-mt5-copy-bridge
+    restart: unless-stopped
+    # Published on loopback only. Terminate TLS in front of it.
+    ports:
+      - "127.0.0.1:18197:18197"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    security_opt:
+      - no-new-privileges:true

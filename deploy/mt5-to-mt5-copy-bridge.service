@@ -1,0 +1,28 @@
+[Unit]
+Description=Forex MT5 Copy Sync
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mt5-to-mt5-copy-bridge
+Group=mt5-to-mt5-copy-bridge
+WorkingDirectory=/opt/mt5-to-mt5-copy-bridge_test
+EnvironmentFile=/opt/mt5-to-mt5-copy-bridge_test/.env
+ExecStart=/opt/mt5-to-mt5-copy-bridge_test/.venv/bin/python /opt/mt5-to-mt5-copy-bridge_test/app.py
+Restart=on-failure
+RestartSec=5
+
+# --- hardening (see SECURITY_AUDIT.md) ---
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/mt5-to-mt5-copy-bridge_test/data
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MT5 Copy Sync 桥接安装</title>
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --panel: #ffffff;
+      --soft: #f8fafc;
+      --line: #dde3ea;
+      --line-strong: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --blue: #175cd3;
+      --green: #067647;
+      --orange: #b54708;
+      --red: #b42318;
+      --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 10px 28px rgba(15, 23, 42, .05);
+      --font: "IBM Plex Sans", "HarmonyOS Sans SC", "Microsoft YaHei UI", "Noto Sans SC", "Segoe UI", sans-serif;
+      --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        linear-gradient(90deg, rgba(15, 23, 42, .018) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(15, 23, 42, .018) 1px, transparent 1px),
+        var(--bg);
+      background-size: 56px 56px, 56px 56px, auto;
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    a { color: inherit; }
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 20px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 36px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+    .sub {
+      margin-top: 8px;
+      color: var(--muted);
+      font-weight: 650;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .btn {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    .btn.primary {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: #fff;
+    }
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .step-list {
+      display: grid;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .step-card {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr) minmax(360px, 440px);
+      gap: 18px;
+      align-items: center;
+      padding: 18px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .step-number {
+      width: 68px;
+      height: 68px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: #eff6ff;
+      color: var(--blue);
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 900;
+    }
+    .step-copy h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+    .step-copy p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-weight: 650;
+    }
+    .check-lines {
+      display: grid;
+      gap: 6px;
+      margin-top: 12px;
+    }
+    .check-line {
+      display: flex;
+      gap: 8px;
+      color: #334155;
+      font-weight: 650;
+    }
+    .check-dot {
+      width: 7px;
+      height: 7px;
+      flex: 0 0 auto;
+      margin-top: 8px;
+      border-radius: 999px;
+      background: var(--blue);
+    }
+    code {
+      font-family: var(--mono);
+      padding: 2px 5px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      font-size: 12px;
+    }
+    .image-stack {
+      display: grid;
+      gap: 10px;
+    }
+    .image-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .image-button {
+      display: block;
+      width: 100%;
+      padding: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: #fff;
+      cursor: zoom-in;
+      overflow: hidden;
+      text-align: left;
+    }
+    .image-button:hover {
+      border-color: #94a3b8;
+    }
+    .image-button img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #fff;
+    }
+    .image-hint {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      text-align: right;
+    }
+    .mini-note {
+      display: inline-flex;
+      margin-top: 10px;
+      padding: 7px 10px;
+      border: 1px solid #fedf89;
+      border-radius: 8px;
+      background: #fffbeb;
+      color: #7a2e0e;
+      font-weight: 750;
+    }
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(15, 23, 42, .72);
+    }
+    .lightbox.open { display: flex; }
+    .lightbox-panel {
+      width: min(1120px, 96vw);
+      max-height: 92vh;
+      padding: 14px;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 24px 64px rgba(15, 23, 42, .35);
+    }
+    .lightbox-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      color: var(--text);
+      font-weight: 800;
+    }
+    .lightbox-close {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 22px;
+      line-height: 1;
+    }
+    .lightbox img {
+      display: block;
+      width: 100%;
+      max-height: calc(92vh - 76px);
+      object-fit: contain;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+    @media (max-width: 980px) {
+      header { grid-template-columns: 1fr; }
+      .actions { justify-content: flex-start; }
+      .step-card { grid-template-columns: 76px minmax(0, 1fr); }
+      .step-visual { grid-column: 1 / -1; }
+    }
+    @media (max-width: 640px) {
+      .wrap { width: min(100% - 20px, 1120px); padding-top: 14px; }
+      header { padding: 14px; }
+      .step-card {
+        grid-template-columns: 1fr;
+        padding: 14px;
+      }
+      .step-number {
+        width: 58px;
+        height: 58px;
+        border-radius: 14px;
+        font-size: 28px;
+      }
+      .image-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div>
+        <h1>MT5 Copy Sync 桥接安装</h1>
+        <div class="sub">按下面 5 步做。图片看不清时，点击图片放大。</div>
+      </div>
+      <div class="actions">
+        <a class="btn primary" href="/static/downloads/Forex_MT5_Copy_Sync_Bridge_Setup.exe?v=20260516_exe" download>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          下载桥接器 EXE
+        </a>
+        <a class="btn" href="/">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          返回控制台
+        </a>
+      </div>
+    </header>
+
+    <section class="step-list" aria-label="安装步骤">
+      <article class="step-card">
+        <div class="step-number">1</div>
+        <div class="step-copy">
+          <h2>下载并打开桥接器</h2>
+          <p>打开后点“一键安装并启动”，窗口不要关。</p>
+          <div class="check-lines">
+            <div class="check-line"><span class="check-dot"></span><span>控制台地址一般不用改。</span></div>
+            <div class="check-line"><span class="check-dot"></span><span>出现 <code>401</code> 时，填 Bridge Token 后再启动。</span></div>
+          </div>
+        </div>
+        <div class="step-visual">
+          <button class="image-button" type="button" data-full="/static/assets/bridge-guide/01-installer-window.png" data-caption="桥接器窗口">
+            <img src="/static/assets/bridge-guide/01-installer-window.png" alt="桥接器窗口">
+          </button>
+          <div class="image-hint">点击图片放大</div>
+        </div>
+      </article>
+
+      <article class="step-card">
+        <div class="step-number">2</div>
+        <div class="step-copy">
+          <h2>在 MT5 左侧找到两个 EA</h2>
+          <p>安装成功后，MT5 导航器里会出现两个 EA。</p>
+          <div class="check-lines">
+            <div class="check-line"><span class="check-dot"></span><span><code>ForexMt5SourceBridge</code>：挂到观摩账户。</span></div>
+            <div class="check-line"><span class="check-dot"></span><span><code>ForexMt5Executor</code>：挂到执行账户。</span></div>
+          </div>
+        </div>
+        <div class="step-visual">
+          <button class="image-button" type="button" data-full="/static/assets/bridge-guide/02-mt5-navigator-ea.png" data-caption="MT5 导航器里的两个 EA">
+            <img src="/static/assets/bridge-guide/02-mt5-navigator-ea.png" alt="MT5 导航器里的两个 EA">
+          </button>
+          <div class="image-hint">点击图片放大</div>
+        </div>
+      </article>
+
+      <article class="step-card">
+        <div class="step-number">3</div>
+        <div class="step-copy">
+          <h2>观摩账户挂 SourceBridge</h2>
+          <p>拖到观摩账户的品种图表上，然后填源端参数。</p>
+          <div class="check-lines">
+            <div class="check-line"><span class="check-dot"></span><span>常用页勾选“允许算法交易”。</span></div>
+            <div class="check-line"><span class="check-dot"></span><span><code>SourceId</code> 填源账户，<code>SymbolPrefix</code> 填品种。</span></div>
+          </div>
+        </div>
+        <div class="step-visual image-stack">
+          <div class="image-row">
+            <button class="image-button" type="button" data-full="/static/assets/bridge-guide/03-source-common-allow-trading.png" data-caption="源端允许算法交易">
+              <img src="/static/assets/bridge-guide/03-source-common-allow-trading.png" alt="源端允许算法交易">
+            </button>
+            <button class="image-button" type="button" data-full="/static/assets/bridge-guide/04-source-inputs.png" data-caption="源端输入参数">
+              <img src="/static/assets/bridge-guide/04-source-inputs.png" alt="源端输入参数">
+            </button>
+          </div>
+          <div class="image-hint">点击图片放大</div>
+        </div>
+      </article>
+
+      <article class="step-card">
+        <div class="step-number">4</div>
+        <div class="step-copy">
+          <h2>执行账户挂 Executor</h2>
+          <p>拖到执行账户的品种图表上，按图填执行端参数。</p>
+          <div class="check-lines">
+            <div class="check-line"><span class="check-dot"></span><span>常用页也要勾选“允许算法交易”。</span></div>
+            <div class="check-line"><span class="check-dot"></span><span><code>ExecutorId</code> 要和桥接器窗口一致。</span></div>
+          </div>
+        </div>
+        <div class="step-visual">
+          <button class="image-button" type="button" data-full="/static/assets/bridge-guide/07-executor-inputs-simple.png" data-caption="执行端参数填写">
+            <img src="/static/assets/bridge-guide/07-executor-inputs-simple.png" alt="执行端参数填写">
+          </button>
+          <div class="image-hint">点击图片放大</div>
+        </div>
+      </article>
+
+      <article class="step-card">
+        <div class="step-number">5</div>
+        <div class="step-copy">
+          <h2>看到 running 后回控制台</h2>
+          <p>源端和执行端图表左上角都出现 running，就回控制台检查同步状态。</p>
+          <div class="check-lines">
+            <div class="check-line"><span class="check-dot"></span><span>最近同步时间有更新。</span></div>
+            <div class="check-line"><span class="check-dot"></span><span>失败命令为 0；有失败就点“查看日志”。</span></div>
+          </div>
+          <div class="mini-note">没看到 running：先检查 MT5 顶部“算法交易”是否开启。</div>
+        </div>
+        <div class="step-visual image-stack">
+          <div class="image-row">
+            <button class="image-button" type="button" data-full="/static/assets/bridge-guide/05-source-running.png" data-caption="源端 running">
+              <img src="/static/assets/bridge-guide/05-source-running.png" alt="源端 running">
+            </button>
+            <button class="image-button" type="button" data-full="/static/assets/bridge-guide/08-executor-running.png" data-caption="执行端 running">
+              <img src="/static/assets/bridge-guide/08-executor-running.png" alt="执行端 running">
+            </button>
+          </div>
+          <div class="image-hint">点击图片放大</div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div class="lightbox" id="imageLightbox" aria-hidden="true">
+    <div class="lightbox-panel" role="dialog" aria-modal="true" aria-label="图片预览">
+      <div class="lightbox-top">
+        <span id="lightboxCaption">图片预览</span>
+        <button class="lightbox-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <img id="lightboxImage" src="" alt="">
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const box = document.getElementById("imageLightbox");
+      const img = document.getElementById("lightboxImage");
+      const caption = document.getElementById("lightboxCaption");
+      const close = box.querySelector(".lightbox-close");
+
+      function openImage(button) {
+        img.src = button.dataset.full;
+        img.alt = button.querySelector("img")?.alt || "";
+        caption.textContent = button.dataset.caption || "图片预览";
+        box.classList.add("open");
+        box.setAttribute("aria-hidden", "false");
+      }
+
+      function closeImage() {
+        box.classList.remove("open");
+        box.setAttribute("aria-hidden", "true");
+        img.src = "";
+      }
+
+      document.querySelectorAll(".image-button").forEach((button) => {
+        button.addEventListener("click", () => openImage(button));
+      });
+      close.addEventListener("click", closeImage);
+      box.addEventListener("click", (event) => {
+        if (event.target === box) closeImage();
+      });
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && box.classList.contains("open")) closeImage();
+      });
+    })();
+  </script>
+</body>
+</html>

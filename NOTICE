@@ -1,0 +1,45 @@
+MT5 to MT5 Copy Bridge
+Copyright 2026 duobaiawa
+
+Same-platform copy trading: one MetaTrader 5 account to another, via a
+file-based Windows bridge agent. The server holds no broker credentials.
+
+This product includes software developed by duobaiawa.
+
+ATTRIBUTION IS MANDATORY. Apache-2.0 Section 4 requires that you retain this
+NOTICE, the LICENSE text, and every copyright header in the source files, and
+that you mark any file you modify. This applies in full to commercial use: if you
+deploy this as a paid service, resell it, rebrand it, embed it in a product, or
+reuse only its position-inference algorithm, you MUST credit the original author.
+
+Removing the attribution terminates your licence automatically under Apache-2.0
+Sections 2 and 4. Every copy and every distribution you make after that point is
+copyright infringement.
+
+署名是强制义务。商用、转售、换标、嵌入产品，或仅复用其中的净仓推断算法，
+都必须保留本 NOTICE、LICENSE 全文和源文件版权头。删除署名将自动终止你的授权，
+此后每一次复制和分发都构成侵权。
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+--------------------------------------------------------------------------
+THIRD-PARTY AND EXTERNAL SERVICES
+
+This software interoperates with, but does not bundle or redistribute:
+
+  * MetaTrader 5 and the MQL5 language (MetaQuotes Ltd.)
+  * The Gate.io v4 API (Gate Technology Inc.) -- xauusd_copy_sync only
+
+MetaTrader, MQL5 and Gate.io are trademarks of their respective owners.
+Use of their names here is nominative and does not imply endorsement.
+
+--------------------------------------------------------------------------
+RISK NOTICE
+
+This software places live orders on financial accounts. It is provided
+"AS IS", WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, and the authors
+accept no liability for trading losses. Test on a demo account first.

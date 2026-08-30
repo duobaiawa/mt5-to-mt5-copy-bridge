@@ -1,0 +1,24 @@
+# secrets / local config
+.env
+*.env
+!.env.example
+
+# runtime state (contains live account data)
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# build output / redistributable binaries -> attach to GitHub Releases instead
+static/downloads/*
+!static/downloads/.gitkeep
+!static/downloads/README.md
+dist/
+build/
+*.exe
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
