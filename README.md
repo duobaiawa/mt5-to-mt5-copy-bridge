@@ -16,6 +16,23 @@
 >
 > Copyright 2026 duobaiawa · Apache License 2.0 · **AS IS, 作者不对任何交易损失负责**
 
+## ⚡ 交给 AI 一键部署
+
+不想自己动手？把下面这句原样发给你的 AI 助手（Claude / ChatGPT / Cursor / Copilot 等）：
+
+```text
+请阅读这个仓库 https://github.com/duobaiawa/mt5-to-mt5-copy-bridge 的 AGENT_DEPLOY.md，按里面的步骤帮我完成部署和配置。
+```
+
+AI 会读 **[AGENT_DEPLOY.md](AGENT_DEPLOY.md)** 里的确定性步骤，自动帮你装好、验证、并把
+访问地址和令牌交给你。想自己动手看 **[QUICKSTART.md](QUICKSTART.md)**（傻瓜式图文，约 5 分钟）。
+
+## 界面预览
+
+[![MT5 → MT5 跟单控制台（图为演示数据）](docs/screenshots/mt5-to-mt5-01-dashboard.png)](docs/screenshots/mt5-to-mt5-02-full.png)
+
+> MT5 → MT5 跟单控制台（图为演示数据）。点开看完整长图。
+
 ## 为什么是"零凭据"
 
 主流跟单方案要么把你的 MT5 账号密码交给服务器，要么依赖券商自家的跟单功能。

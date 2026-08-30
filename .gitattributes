@@ -1,0 +1,18 @@
+# Normalize line endings so scripts run on their target platform.
+* text=auto eol=lf
+
+# Shell scripts must be LF even on Windows checkouts.
+*.sh text eol=lf
+
+# Windows-only scripts stay CRLF.
+*.ps1 text eol=crlf
+*.cs  text eol=crlf
+
+# Binary assets: never touched.
+*.png binary
+*.jpg binary
+*.svg binary
+*.exe binary
+*.zip binary
+*.ex5 binary
+*.db  binary

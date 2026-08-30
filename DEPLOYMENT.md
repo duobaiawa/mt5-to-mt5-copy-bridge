@@ -1,11 +1,31 @@
 # 部署指南 · 零凭据跟单桥
 
-四种部署方式，按场景选一种。**任何一种都不要把端口直接暴露到公网**——
-服务默认只监听 `127.0.0.1`，对外必须走 HTTPS 反向代理。
+不懂技术看 **[QUICKSTART.md](QUICKSTART.md)**（傻瓜式图文）；
+让 AI 代劳看 **[AGENT_DEPLOY.md](AGENT_DEPLOY.md)**。
+下面是给运维的完整方式，共五种，按场景选。
+**任何一种都不要把端口直接暴露到公网**——服务默认只监听 `127.0.0.1`，对外必须走 HTTPS 反向代理。
 
 ---
 
-## 方式一：本机快速跑（开发 / 试用）
+## 方式零：一键安装脚本（最省事，推荐个人使用）
+
+Windows —— 右键 `install.ps1` → 使用 PowerShell 运行，或：
+```powershell
+.\install.ps1
+```
+Linux / macOS：
+```bash
+bash install.sh          # 加 --systemd 直接装成开机自启服务
+```
+
+脚本自动完成：检测 Python 3.11+ → 建独立 `.venv` → 装依赖（失败自动切国内镜像）→
+生成随机令牌 → 自检端口 → 启动服务 → 打印控制台地址与令牌。装完即用。
+
+> 换端口：`.\install.ps1 -Port 18200`（Windows）。重新生成令牌：加 `-Force` / `--force`。
+
+---
+
+## 方式一：手动本机跑（开发 / 试用）
 
 ```bash
 pip install -r requirements.txt

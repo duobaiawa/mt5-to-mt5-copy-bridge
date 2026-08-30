@@ -9,16 +9,23 @@ data/
 *.db-wal
 *.db-shm
 
-# build output / redistributable binaries -> attach to GitHub Releases instead
-static/downloads/*
-!static/downloads/.gitkeep
-!static/downloads/README.md
+# build output
 dist/
 build/
-*.exe
+# stray exe anywhere EXCEPT the vetted redistributables under static/downloads/
+/*.exe
+bridge/*.exe
+# keep the clean, rebuilt bridge redistributables (no production domain baked in);
+# they are also published on GitHub Releases with SHA256 checksums
+!static/downloads/Forex_MT5_Copy_Sync_Bridge_Setup.exe
+!static/downloads/forex-mt5-bridge-bundle.zip
 
 # python
 __pycache__/
 *.py[cod]
 .venv/
 venv/
+
+# installer runtime artifacts
+service.log
+service.pid
